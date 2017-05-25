@@ -50,7 +50,7 @@ API.init = function(data, callback) {
 
 	API.reloadSettings();
 
-	data.router.post('/weapp/login', require('./routes/v1/middleware').requireUser, function (req, res) {
+	data.router.post('/weapp/login', data.middleware.applyCSRF, require('./routes/v1/middleware').requireUser, function (req, res) {
 		res.status(200).json(req.body);
 	});
 
