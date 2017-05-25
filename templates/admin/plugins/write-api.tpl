@@ -29,6 +29,19 @@
 						secret as defined in the plugin, and either send it in the <code>POST</code> body, or as a query string parameter. In both cases,
 						the key `token` is used.
 					</p>
+
+					<div class="form-group">
+						<label for="wechat:appId">Wechat appID</label>
+						<input type="text" class="form-control" name="wechat:appId" id="wechat:appId" />
+					</div>
+					<div class="form-group">
+						<label for="wechat:appSecret">Wechat appSecret</label>
+						<input type="text" class="form-control" name="wechat:appSecret" id="wechat:appSecret" />
+					</div>
+					<p class="help-block">
+						在上面填写微信小程序的 appId 和 appSecret, 注意，后面的`Enable authentication via`必须选中。
+					</p>
+
 				</form>
 				<button type="button" class="pull-right btn btn-primary" id="save">Save</button>
 			</div>

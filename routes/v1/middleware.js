@@ -4,13 +4,25 @@
 var passport = require.main.require('passport'),
 	async = require.main.require('async'),
 	jwt = require('jsonwebtoken'),
+	db = require.main.require('./src/database'),
 	user = require.main.require('./src/user'),
 	groups = require.main.require('./src/groups'),
 	topics = require.main.require('./src/topics'),
 	categories = require.main.require('./src/categories'),
 	errorHandler = require('../../lib/errorHandler'),
-
+	request = require('request'),
 	Middleware = {};
+
+var WxBizDataCrypt = require('../../lib/wxBizDataCrypt');
+
+function getUidByWechatId(wxid, callback) {
+	db.getObjectField('wxid:uid', wxid, function (err, uid) {
+		if (err) {
+			return callback(err);
+		}
+		callback(null, uid);
+	});
+}
 
 Middleware.requireUser = function(req, res, next) {
 	var writeApi = require.main.require('nodebb-plugin-write-api');
@@ -51,33 +63,126 @@ Middleware.requireUser = function(req, res, next) {
 				return errorHandler.respond(500, res);
 			}
 		})(req, res, next);
-	} else if (writeApi.settings['jwt:enabled'] === 'on' && writeApi.settings.hasOwnProperty('jwt:secret')) {
-		var token = (writeApi.settings['jwt:payloadKey'] ? (req.query[writeApi.settings['jwt:payloadKey']] || req.body[writeApi.settings['jwt:payloadKey']]) : null) || req.query.token || req.body.token;
-		jwt.verify(token, writeApi.settings['jwt:secret'], {
-			ignoreExpiration: true,
-		}, function(err, decoded) {
-			if (!err && decoded) {
-				if (!decoded.hasOwnProperty('_uid')) {
-					return res.status(400).json(errorHandler.generate(
-						400, 'params-missing',
-						'Required parameters were missing from this API call, please see the "params" property',
-						['_uid']
-					));
+	} else if (writeApi.settings['jwt:enabled'] === 'on'
+		&& req.body.code
+		&& req.body.encryptedData) {
+
+		var appId = writeApi.settings['wechat:appId'];
+		var appSecret = writeApi.settings['wechat:appSecret'];
+		var jwtSecret = writeApi.settings['jwt:secret'];
+
+		var expiresIn = 60 * 60 * 48; // expires in 48 hours
+
+		console.log('wechat authenticate(appId): ', appId);
+
+		var encryptedData = req.body.encryptedData;
+		var code = req.body.code;
+		var iv = req.body.iv;
+		var sessionKey = '';
+		var path = 'https://api.weixin.qq.com/sns/jscode2session?appid=' +
+		appId + '&secret='+appSecret+'&js_code='+code+'&grant_type=authorization_code';
+		var requestOptions = {
+		    url: path,
+		    method: 'GET',
+		    json: {}
+		};
+		request(
+			requestOptions,
+			function (err, response, body) {
+				if (err || body.errcode) {
+				  return res.status(400).json(400, 1, err || body.errmsg);
+				}
+				sessionKey = body.session_key;
+
+				var pc = new WxBizDataCrypt(appId, sessionKey);
+				var data = pc.decryptData(encryptedData, iv);
+
+				function _login (uid) {
+					req.login({
+						uid: uid
+					}, function(err) {
+						if (err) { return res.status(400).json(400, 1, err);}
+						var userData = {
+							uid: uid,
+							username: data.nickName,
+							weiXin: {
+							  appId: appId,
+							  openId: data.openId,
+							  unionId: data.unionId,
+							  nickName: data.nickName,
+							  gender: data.gender,
+							  city: data.city,
+							  province: data.province,
+							  country: data.country,
+							  avatarUrl: data.avatarUrl
+							}
+						};
+
+						var token = jwt.sign(userData, jwtSecret, {
+						  expiresIn: expiresIn
+						});
+
+						req.uid = uid;
+
+						req.body = {
+							token: 'JWT ' + token,
+							user: userData
+						};
+						next();
+					});
 				}
 
-				req.login({
-					uid: decoded._uid
-				}, function(err) {
-					if (err) { return errorHandler.respond(500, res); }
-
-					req.uid = decoded._uid
-					req.body = decoded;
-					next();
+				getUidByWechatId(data.openId, function (err, uid) {
+					if (err) {
+						return res.status(400).json(400, 1, err);
+					}
+					if (uid !== null) {
+						_login(uid);
+					} else {
+						user.create({
+							username: data.nickName
+						}, function (err, uid) {
+							if (err) {
+								return res.status(400).json(400, 1, err);
+							}
+							user.setUserField(uid, 'wxid', data.openId);
+							db.setObjectField('wxid:uid', data.openId, uid);
+							if (data.avatarUrl) {
+								user.setUserField(uid, 'uploadedpicture', picture);
+								user.setUserField(uid, 'picture', picture);
+							}
+							_login(uid);
+						});
+					}
 				});
-			} else {
-				errorHandler.respond(401, res);
 			}
-		});
+		);
+		// var token = (writeApi.settings['jwt:payloadKey'] ? (req.query[writeApi.settings['jwt:payloadKey']] || req.body[writeApi.settings['jwt:payloadKey']]) : null) || req.query.token || req.body.token;
+		// jwt.verify(token, writeApi.settings['jwt:secret'], {
+		// 	ignoreExpiration: true,
+		// }, function(err, decoded) {
+		// 	if (!err && decoded) {
+		// 		if (!decoded.hasOwnProperty('_uid')) {
+		// 			return res.status(400).json(errorHandler.generate(
+		// 				400, 'params-missing',
+		// 				'Required parameters were missing from this API call, please see the "params" property',
+		// 				['_uid']
+		// 			));
+		// 		}
+
+		// 		req.login({
+		// 			uid: decoded._uid
+		// 		}, function(err) {
+		// 			if (err) { return errorHandler.respond(500, res); }
+
+		// 			req.uid = decoded._uid
+		// 			req.body = decoded;
+		// 			next();
+		// 		});
+		// 	} else {
+		// 		errorHandler.respond(401, res);
+		// 	}
+		// });
 	} else if ((routeMatch = req.originalUrl.match(/^\/api\/v\d+\/users\/(\d+)\/tokens$/)) && req.body.hasOwnProperty('password')) {
 		// If token generation route is hit, check password instead
 		var uid = routeMatch[1];
@@ -100,6 +205,7 @@ Middleware.requireUser = function(req, res, next) {
 };
 
 Middleware.associateUser = function(req, res, next) {
+	console.log('###req.headers', req.headers);
 	if (req.headers.hasOwnProperty('authorization')) {
 		passport.authenticate('bearer', { session: false }, function(err, user) {
 			if (err || !user) { return next(err); }

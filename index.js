@@ -11,6 +11,25 @@ var	passport = module.parent.require('passport'),
 
 	API = {};
 
+// var JwtStrategy = require('passport-jwt').Strategy;
+// var ExtractJwt = require('passport-jwt').ExtractJwt;
+
+// API.getStrategy = function (strategies, callback) {
+// 	console.log('######## getStrategy');
+// 	var opts = {};
+// 	opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
+// 	// opts.secretOrKey = '123123123';
+// 	opts.passReqToCallback = true;
+
+// 	passport.use('jwt', new JwtStrategy(opts, function (req, jwtPayload, done) {
+// 	  // todo:此处需要处理（例如使用jwt-simple）成jwt_payload.id来访问
+// 	  console.log('###jwtPayload:', jwtPayload);
+// 	  done(null, false);
+// 	}));
+
+// 	return callback(null, strategies);
+// };
+
 API.init = function(data, callback) {
 	// API Versions
 	var routes = require('./routes')(data.middleware);
@@ -22,6 +41,7 @@ API.init = function(data, callback) {
 		// the user to `false` to indicate failure.  Otherwise, return the
 		// authenticated `user`.  Note that in a production-ready application, one
 		// would want to validate the token for authenticity.
+		console.log('### use BearerStrategy', token);
 		auth.verifyToken(token, done);
 	}));
 
@@ -29,6 +49,11 @@ API.init = function(data, callback) {
 	sockets.init();	// WebSocket listeners
 
 	API.reloadSettings();
+
+	data.router.post('/weapp/login', require('./routes/v1/middleware').requireUser, function (req, res) {
+		res.status(200).json(req.body);
+	});
+
 	callback();
 };
 

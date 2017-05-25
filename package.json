@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-write-api",
-  "version": "4.7.0",
+  "version": "4.8.0",
   "description": "Write-enabled API for NodeBB",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,9 @@
   "dependencies": {
     "express": "^4.12.0",
     "jsonwebtoken": "^5.0.4",
-    "passport-http-bearer": "^1.0.1"
+    "passport-http-bearer": "^1.0.1",
+    "passport-jwt": "^2.2.1",
+    "request": "^2.81.0"
   },
   "nbbpm": {
     "compatibility": "^1.4.5"
