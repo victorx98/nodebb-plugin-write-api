@@ -148,8 +148,8 @@ Middleware.requireUser = function(req, res, next) {
 							user.setUserField(uid, 'wxid', data.openId);
 							db.setObjectField('wxid:uid', data.openId, uid);
 							if (data.avatarUrl) {
-								user.setUserField(uid, 'uploadedpicture', picture);
-								user.setUserField(uid, 'picture', picture);
+								user.setUserField(uid, 'uploadedpicture', data.avatarUrl);
+								user.setUserField(uid, 'picture', data.avatarUrl);
 							}
 							_login(uid);
 						});
