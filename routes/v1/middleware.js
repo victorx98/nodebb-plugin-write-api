@@ -4,6 +4,7 @@
 var passport = require.main.require('passport'),
 	async = require.main.require('async'),
 	jwt = require('jsonwebtoken'),
+	auth = require('../../lib/auth'),
 	db = require.main.require('./src/database'),
 	user = require.main.require('./src/user'),
 	groups = require.main.require('./src/groups'),
@@ -118,17 +119,31 @@ Middleware.requireUser = function(req, res, next) {
 							}
 						};
 
-						var token = jwt.sign(userData, jwtSecret, {
-						  expiresIn: expiresIn
+
+						console.log('wechat openId: ', data.openId);
+						console.log('wechat unionId: ', data.unionId);
+
+						auth.generateToken(uid, function(err, token){
+
+							console.log('session token: ', token);
+
+							/*
+							var token = jwt.sign(userData, jwtSecret, {
+							  expiresIn: expiresIn
+							});
+							*/
+
+							req.uid = uid;
+
+							req.body = {
+								token: token,
+								user: userData
+							};
+							next();
+
+
 						});
 
-						req.uid = uid;
-
-						req.body = {
-							token: 'JWT ' + token,
-							user: userData
-						};
-						next();
 					});
 				}
 
