@@ -104,7 +104,7 @@ Middleware.requireUser = function(req, res, next) {
 						if (err) { return res.status(400).json(400, 1, err);}
 						var userData = {
 							uid: uid,
-							username: data.nickName,
+							fullname: data.nickName,
 							weiXin: {
 							  appId: appId,
 							  openId: data.openId,
@@ -136,11 +136,14 @@ Middleware.requireUser = function(req, res, next) {
 					if (err) {
 						return res.status(400).json(400, 1, err);
 					}
+					// console.log('get uid: ', uid);
 					if (uid !== null) {
 						_login(uid);
 					} else {
+						// fullname could be duplicate, but username must be unique.
 						user.create({
-							username: data.nickName
+							username: data.nickName,
+							fullname: data.nickName
 						}, function (err, uid) {
 							if (err) {
 								return res.status(400).json(400, 1, err);
@@ -205,7 +208,7 @@ Middleware.requireUser = function(req, res, next) {
 };
 
 Middleware.associateUser = function(req, res, next) {
-	console.log('###req.headers', req.headers);
+	// console.log('###req.headers', req.headers);
 	if (req.headers.hasOwnProperty('authorization')) {
 		passport.authenticate('bearer', { session: false }, function(err, user) {
 			if (err || !user) { return next(err); }
