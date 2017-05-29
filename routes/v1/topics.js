@@ -23,7 +23,9 @@ module.exports = function(middleware) {
 					content: req.body.content,
 					tags: req.body.tags || [],
 					uid: req.user.uid,
-					timestamp: req.body.timestamp
+					timestamp: req.body.timestamp,
+					thumb: req.body.thumb,
+					etopic: req.body.etopic
 				};
 
 			Topics.post(payload, function(err, data) {
@@ -65,6 +67,7 @@ module.exports = function(middleware) {
 				uid: req.user.uid,
 				pid: req.body.pid,
 				content: req.body.content,
+				etopic: req.body.etopic,
 				options: {}
 			};
 			console.log(payload);
