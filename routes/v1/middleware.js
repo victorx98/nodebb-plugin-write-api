@@ -218,6 +218,9 @@ Middleware.requireUser = function(req, res, next) {
 			}
 		});
 	} else {
+		if (req.user) {
+			return next();
+		}
 		errorHandler.respond(401, res);
 	}
 };
