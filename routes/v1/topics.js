@@ -67,16 +67,15 @@ module.exports = function(middleware) {
 				uid: req.user.uid,
 				pid: req.body.pid,
 				content: req.body.content,
-				etopic: req.body.etopic,
-				options: {}
+				etopic: req.body.etopic
 			};
 			console.log(payload);
 
 			// Maybe a "set if available" utils method may come in handy
 			if (req.body.handle) { payload.handle = req.body.handle; }
 			if (req.body.title) { payload.title = req.body.title; }
-			if (req.body.topic_thumb) { payload.options.topic_thumb = req.body.topic_thumb; }
-			if (req.body.tags) { payload.options.tags = req.body.tags; }
+			if (req.body.thumb) { payload.options.thumb = req.body.thumb; }
+			if (req.body.tags) { payload.tags = req.body.tags; }
 
 			Posts.edit(payload, function(err, returnData) {
 				errorHandler.handle(err, res, returnData);
