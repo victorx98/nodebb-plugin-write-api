@@ -107,14 +107,14 @@ Middleware.requireUser = function(req, res, next) {
 							uid: uid,
 							fullname: data.nickName,
 							weiXin: {
-							  appId: appId,
-							  openId: data.openId,
-							  unionId: data.unionId,
+							  // appId: appId,
+							  // openId: data.openId,
+							  // unionId: data.unionId,
 							  nickName: data.nickName,
-							  gender: data.gender,
-							  city: data.city,
-							  province: data.province,
-							  country: data.country,
+							  // gender: data.gender,
+							  // city: data.city,
+							  // province: data.province,
+							  // country: data.country,
 							  avatarUrl: data.avatarUrl
 							}
 						};
