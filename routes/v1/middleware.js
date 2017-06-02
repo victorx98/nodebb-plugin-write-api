@@ -119,10 +119,6 @@ Middleware.requireUser = function(req, res, next) {
 							}
 						};
 
-
-						console.log('wechat openId: ', data.openId);
-						console.log('wechat unionId: ', data.unionId);
-
 						auth.generateToken(uid, function(err, token){
 
 							console.log('session token: ', token);
