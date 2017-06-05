@@ -10,7 +10,8 @@
 		{ "hook": "filter:admin.header.build", "method": "addMenuItem" },
 		{ "hook": "action:middleware.authenticate", "method": "authenticate"},
 		{ "hook": "filter:router.page", "method": "associateUser" },
-		{ "hook": "action:settings.set", "method": "reloadSettings" }
+		{ "hook": "action:settings.set", "method": "reloadSettings" },
+		{ "hook": "filter:group.create", "method": "hooks.filter.groupCreate" }
 	],
 	"less": [
 		"./less/style.less"

@@ -9,8 +9,8 @@ async = require('async')
     Hooks.action = {}
 
     Hooks.filter.groupCreate = (obj, callback)->
-        {groupData, data} = obj
-        return if !obj.isClub
+        {group, data} = obj
+        return callback(null, obj) if !data.isClub
         parentCat = null
 
         async.waterfall [
@@ -29,22 +29,22 @@ async = require('async')
                     'upload:post:image'
                 ]
 
-                privileges.rescind removePrivileges,
+                privileges.categories.rescind removePrivileges,
                 parentCat.cid, 'registered-users', next
 
             (next) ->
                 removePrivileges = [
                     'find', 'read', 'topics:read'
                 ]
-                privileges.rescind removePrivileges,
+                privileges.categories.rescind removePrivileges,
                 parentCat.cid, 'guests', next
 
             (next) ->
                 defaultPrivileges = ['find', 'read', 'topics:read',
                 'topics:create', 'topics:reply',
                 'posts:edit', 'posts:delete', 'topics:delete',
-                'upload:post:image']
-                privileges.give defaultPrivileges,
+                'upload:post:image', 'etopic:create']
+                privileges.categories.give defaultPrivileges,
                 parentCat.cid, data.name, next
 
             (next) ->
@@ -67,7 +67,7 @@ async = require('async')
                         }, next
                 }, next
         ], (err, ret) ->
-            groupData.mainCid = parentCat.cid
+            group.mainCid = parentCat.cid
             return callback(err, obj)
 
 )(exports)
