@@ -8,27 +8,11 @@ var	passport = module.parent.require('passport'),
 
 	auth = require('./lib/auth'),
 	sockets = require('./lib/sockets'),
+	Hooks = require('./lib/hooks'),
 
 	API = {};
 
-// var JwtStrategy = require('passport-jwt').Strategy;
-// var ExtractJwt = require('passport-jwt').ExtractJwt;
-
-// API.getStrategy = function (strategies, callback) {
-// 	console.log('######## getStrategy');
-// 	var opts = {};
-// 	opts.jwtFromRequest = ExtractJwt.fromAuthHeader();
-// 	// opts.secretOrKey = '123123123';
-// 	opts.passReqToCallback = true;
-
-// 	passport.use('jwt', new JwtStrategy(opts, function (req, jwtPayload, done) {
-// 	  // todo:此处需要处理（例如使用jwt-simple）成jwt_payload.id来访问
-// 	  console.log('###jwtPayload:', jwtPayload);
-// 	  done(null, false);
-// 	}));
-
-// 	return callback(null, strategies);
-// };
+API.hooks = Hooks;
 
 API.init = function(data, callback) {
 	// API Versions
