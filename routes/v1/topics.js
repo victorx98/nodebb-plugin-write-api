@@ -22,6 +22,7 @@ module.exports = function(middleware) {
 					title: req.body.title,
 					content: req.body.content,
 					tags: req.body.tags || [],
+					pictures: req.body.pictures || [],
 					uid: req.user.uid,
 					timestamp: req.body.timestamp,
 					thumb: req.body.thumb,
@@ -67,9 +68,9 @@ module.exports = function(middleware) {
 				uid: req.user.uid,
 				pid: req.body.pid,
 				content: req.body.content,
+				pictures: req.body.pictures || [],
 				etopic: req.body.etopic
 			};
-			console.log(payload);
 
 			// Maybe a "set if available" utils method may come in handy
 			if (req.body.handle) { payload.handle = req.body.handle; }
