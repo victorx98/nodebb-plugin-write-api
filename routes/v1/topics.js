@@ -74,7 +74,7 @@ module.exports = function(middleware) {
 			// Maybe a "set if available" utils method may come in handy
 			if (req.body.handle) { payload.handle = req.body.handle; }
 			if (req.body.title) { payload.title = req.body.title; }
-			if (req.body.thumb) { payload.options.thumb = req.body.thumb; }
+			if (req.body.thumb) { payload.thumb = req.body.thumb; }
 			if (req.body.tags) { payload.tags = req.body.tags; }
 
 			Posts.edit(payload, function(err, returnData) {
