@@ -74,8 +74,6 @@ Middleware.requireUser = function(req, res, next) {
 
 		var expiresIn = 60 * 60 * 48; // expires in 48 hours
 
-		console.log('wechat authenticate(appId): ', appId);
-
 		var encryptedData = req.body.encryptedData;
 		var code = req.body.code;
 		var iv = req.body.iv;
@@ -98,6 +96,16 @@ Middleware.requireUser = function(req, res, next) {
 				var pc = new WxBizDataCrypt(appId, sessionKey);
 				var data = pc.decryptData(encryptedData, iv);
 
+				// use unionId as user identify key then openId
+				var wechatId = data.unionId || data.openId;
+				// fix wechat logo protocol, use https instead.
+				var avatarUrl = (data.avatarUrl || '').replace('http://wx.qlogo.cn', 'https://wx.qlogo.cn');
+
+				console.log('login to wechat: ', {
+					unionId: data.unionId,
+					openId: data.openId
+				})
+
 				function _login (uid) {
 					req.login({
 						uid: uid
@@ -106,6 +114,8 @@ Middleware.requireUser = function(req, res, next) {
 						var userData = {
 							uid: uid,
 							fullname: data.nickName,
+							picture: avatarUrl,
+
 							weiXin: {
 							  // appId: appId,
 							  // openId: data.openId,
@@ -115,14 +125,11 @@ Middleware.requireUser = function(req, res, next) {
 							  // city: data.city,
 							  // province: data.province,
 							  // country: data.country,
-							  avatarUrl: data.avatarUrl
+							  avatarUrl: avatarUrl
 							}
 						};
 
 						auth.generateToken(uid, function(err, token){
-
-							console.log('session token: ', token);
-
 							/*
 							var token = jwt.sign(userData, jwtSecret, {
 							  expiresIn: expiresIn
@@ -136,14 +143,12 @@ Middleware.requireUser = function(req, res, next) {
 								user: userData
 							};
 							next();
-
-
 						});
 
 					});
 				}
 
-				getUidByWechatId(data.openId, function (err, uid) {
+				getUidByWechatId(wechatId, function (err, uid) {
 					if (err) {
 						return res.status(400).json(400, 1, err);
 					}
@@ -159,11 +164,11 @@ Middleware.requireUser = function(req, res, next) {
 							if (err) {
 								return res.status(400).json(400, 1, err);
 							}
-							user.setUserField(uid, 'wxid', data.openId);
-							db.setObjectField('wxid:uid', data.openId, uid);
-							if (data.avatarUrl) {
-								user.setUserField(uid, 'uploadedpicture', data.avatarUrl);
-								user.setUserField(uid, 'picture', data.avatarUrl);
+							user.setUserField(uid, 'wxid', wechatId);
+							db.setObjectField('wxid:uid', wechatId, uid);
+
+							if (avatarUrl) {
+								user.setUserField(uid, 'picture', avatarUrl);
 							}
 							_login(uid);
 						});
