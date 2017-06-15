@@ -55,9 +55,9 @@ async = require('async')
                             name: 'vote',
                             parentCid: parentCat.cid,
                         }, next
-                    noticeCat: (next) ->
+                    eventCat: (next) ->
                         Categories.create {
-                            name: 'notice',
+                            name: 'event',
                             parentCid: parentCat.cid,
                         }, next
                     discussCat: (next) ->
