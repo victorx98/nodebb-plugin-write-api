@@ -89,7 +89,7 @@ Middleware.requireUser = function(req, res, next) {
 			requestOptions,
 			function (err, response, body) {
 				if (err || body.errcode) {
-				  return res.status(400).json(400, 1, err || body.errmsg);
+				  return errorHandler.handle(err || body.errmsg || body, res);
 				}
 				sessionKey = body.session_key;
 
@@ -150,7 +150,7 @@ Middleware.requireUser = function(req, res, next) {
 
 				getUidByWechatId(wechatId, function (err, uid) {
 					if (err) {
-						return res.status(400).json(400, 1, err);
+						return errorHandler.handle(err, res);
 					}
 					// console.log('get uid: ', uid);
 					if (uid !== null) {
@@ -162,7 +162,7 @@ Middleware.requireUser = function(req, res, next) {
 							fullname: data.nickName
 						}, function (err, uid) {
 							if (err) {
-								return res.status(400).json(400, 1, err);
+								return errorHandler.handle(err, res);
 							}
 							user.setUserField(uid, 'wxid', wechatId);
 							db.setObjectField('wxid:uid', wechatId, uid);
