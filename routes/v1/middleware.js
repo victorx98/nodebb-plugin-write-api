@@ -103,7 +103,7 @@ Middleware.requireUser = function(req, res, next) {
 				var avatarUrl = (data.avatarUrl || '').replace('http://wx.qlogo.cn', 'https://wx.qlogo.cn');
 
 				// fix for some special wechat nickname
-				var wechatName = utils.cleanUpTag(data.nickName, 30);
+				var wechatName = data.nickName.replace(/[^'"\s\-+.*0-9\u00BF-\u1FFF\u2C00-\uD7FF\w]/g, '');
 
 				console.log('login to wechat: ', {
 					unionId: data.unionId,
