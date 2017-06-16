@@ -9,6 +9,7 @@ var passport = require.main.require('passport'),
 	user = require.main.require('./src/user'),
 	groups = require.main.require('./src/groups'),
 	topics = require.main.require('./src/topics'),
+	utils = require.main.require('./src/utils'),
 	categories = require.main.require('./src/categories'),
 	errorHandler = require('../../lib/errorHandler'),
 	request = require('request'),
@@ -101,6 +102,9 @@ Middleware.requireUser = function(req, res, next) {
 				// fix wechat logo protocol, use https instead.
 				var avatarUrl = (data.avatarUrl || '').replace('http://wx.qlogo.cn', 'https://wx.qlogo.cn');
 
+				// fix for some special wechat nickname
+				var wechatName = utils.cleanUpTag(data.nickName, 30);
+
 				console.log('login to wechat: ', {
 					unionId: data.unionId,
 					openId: data.openId
@@ -113,7 +117,7 @@ Middleware.requireUser = function(req, res, next) {
 						if (err) { return res.status(400).json(400, 1, err);}
 						var userData = {
 							uid: uid,
-							fullname: data.nickName,
+							fullname: wechatName,
 							picture: avatarUrl,
 
 							weiXin: {
@@ -158,8 +162,8 @@ Middleware.requireUser = function(req, res, next) {
 					} else {
 						// fullname could be duplicate, but username must be unique.
 						user.create({
-							username: data.nickName,
-							fullname: data.nickName
+							username: wechatName,
+							fullname: wechatName
 						}, function (err, uid) {
 							if (err) {
 								return errorHandler.handle(err, res);
