@@ -68,6 +68,7 @@ Middleware.requireUser = function(req, res, next) {
 	} else if (writeApi.settings['jwt:enabled'] === 'on'
 		&& req.body.code
 		&& req.body.encryptedData) {
+		console.log('wechat login request data: ', req.body);
 
 		var appId = writeApi.settings['wechat:appId'];
 		var appSecret = writeApi.settings['wechat:appSecret'];
@@ -90,6 +91,7 @@ Middleware.requireUser = function(req, res, next) {
 			requestOptions,
 			function (err, response, body) {
 				if (err || body.errcode) {
+				  console.error(err, body)
 				  return errorHandler.handle(err || body.errmsg || body, res);
 				}
 				sessionKey = body.session_key;
@@ -106,6 +108,8 @@ Middleware.requireUser = function(req, res, next) {
 				var wechatName = data.nickName.replace(/[^'"\s\-+.*0-9\u00BF-\u1FFF\u2C00-\uD7FF\w]/g, '');
 
 				console.log('login to wechat: ', {
+					wechatName: wechatName,
+					nickName: data.nickName,
 					unionId: data.unionId,
 					openId: data.openId
 				})
@@ -114,41 +118,27 @@ Middleware.requireUser = function(req, res, next) {
 					req.login({
 						uid: uid
 					}, function(err) {
-						if (err) { return res.status(400).json(400, 1, err);}
-						var userData = {
-							uid: uid,
-							fullname: wechatName,
-							picture: avatarUrl,
+						if (err) { return errorHandler.handle(err, res);}
+						user.getUserData(uid, function (err, userData) {
+							if (err) { return errorHandler.handle(err, res);}
+							userData.nickName = data.nickName;
+							auth.generateToken(uid, function(err, token){
+								if (err) { return errorHandler.handle(err, res);}
+								/*
+								var token = jwt.sign(userData, jwtSecret, {
+								  expiresIn: expiresIn
+								});
+								*/
 
-							weiXin: {
-							  // appId: appId,
-							  // openId: data.openId,
-							  // unionId: data.unionId,
-							  nickName: data.nickName,
-							  // gender: data.gender,
-							  // city: data.city,
-							  // province: data.province,
-							  // country: data.country,
-							  avatarUrl: avatarUrl
-							}
-						};
+								req.uid = uid;
 
-						auth.generateToken(uid, function(err, token){
-							/*
-							var token = jwt.sign(userData, jwtSecret, {
-							  expiresIn: expiresIn
+								req.body = {
+									token: token,
+									user: userData
+								};
+								next();
 							});
-							*/
-
-							req.uid = uid;
-
-							req.body = {
-								token: token,
-								user: userData
-							};
-							next();
 						});
-
 					});
 				}
 
@@ -166,6 +156,7 @@ Middleware.requireUser = function(req, res, next) {
 							fullname: wechatName
 						}, function (err, uid) {
 							if (err) {
+								console.error(err);
 								return errorHandler.handle(err, res);
 							}
 							user.setUserField(uid, 'wxid', wechatId);
@@ -223,9 +214,10 @@ Middleware.requireUser = function(req, res, next) {
 			}
 		});
 	} else {
-		if (req.user) {
+		if (req.user && req.user.uid) {
 			return next();
 		}
+		console.error('requireUser login data error', req.body);
 		errorHandler.respond(401, res);
 	}
 };
