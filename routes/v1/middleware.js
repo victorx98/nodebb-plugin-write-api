@@ -125,7 +125,8 @@ Middleware.requireUser = function(req, res, next) {
 
 							// 兼容旧版本对于 weiXin 的调用
 							userData.weiXin = {
-								nickName: data.nickName
+								nickName: data.nickName,
+								avatarUrl: avatarUrl
 							};
 
 							auth.generateToken(uid, function(err, token){
