@@ -11,7 +11,8 @@
 		{ "hook": "action:middleware.authenticate", "method": "authenticate"},
 		{ "hook": "filter:router.page", "method": "associateUser" },
 		{ "hook": "action:settings.set", "method": "reloadSettings" },
-		{ "hook": "filter:group.create", "method": "hooks.filter.groupCreate" }
+		{ "hook": "filter:group.create", "method": "hooks.filter.groupCreate" },
+		{ "hook": "filter:category.create", "method": "hooks.filter.categoryCreate" }
 	],
 	"less": [
 		"./less/style.less"

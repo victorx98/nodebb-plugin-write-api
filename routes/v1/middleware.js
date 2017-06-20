@@ -160,7 +160,7 @@ Middleware.requireUser = function(req, res, next) {
 						// fullname could be duplicate, but username must be unique.
 						user.create({
 							username: wechatName,
-							fullname: wechatName
+							fullname: data.nickName
 						}, function (err, uid) {
 							if (err) {
 								console.error(err);

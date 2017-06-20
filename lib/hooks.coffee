@@ -49,25 +49,35 @@ async = require('async')
 
             (next) ->
                 # create children categories
-                async.parallel {
-                    voteCat: (next) ->
+                async.waterfall [
+                    (next) ->
                         Categories.create {
-                            name: 'vote',
+                            name: '活动',
+                            isEvent: true,
                             parentCid: parentCat.cid,
                         }, next
-                    eventCat: (next) ->
+                    (cat, next) ->
                         Categories.create {
-                            name: 'event',
+                            name: '投票',
+                            isVote: true,
                             parentCid: parentCat.cid,
                         }, next
-                    discussCat: (next) ->
+                    (cat, next) ->
                         Categories.create {
-                            name: 'discuss',
+                            name: '话题',
+                            isDiscuss: true,
                             parentCid: parentCat.cid,
                         }, next
-                }, next
+                ], next
         ], (err, ret) ->
             group.mainCid = parentCat.cid
             return callback(err, obj)
+
+    Hooks.filter.categoryCreate = (obj, callback) ->
+        {category, data} = obj
+        category.isEvent = data.isEvent
+        category.isVote = data.isVote
+        category.isDiscuss = data.isDiscuss
+        return callback(null, obj)
 
 )(exports)
