@@ -122,6 +122,12 @@ Middleware.requireUser = function(req, res, next) {
 						user.getUserData(uid, function (err, userData) {
 							if (err) { return errorHandler.handle(err, res);}
 							userData.nickName = data.nickName;
+
+							// 兼容旧版本对于 weiXin 的调用
+							userData.weiXin = {
+								nickName: data.nickName
+							};
+
 							auth.generateToken(uid, function(err, token){
 								if (err) { return errorHandler.handle(err, res);}
 								/*
