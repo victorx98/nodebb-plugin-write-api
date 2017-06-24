@@ -6,13 +6,62 @@ var Groups = require.main.require('./src/groups'),
 	Categories = require.main.require('./src/categories'),
 	User = require.main.require('./src/user'),
 	Events = require.main.require('./src/events'),
+	db = require.main.require('./src/database'),
 	apiMiddleware = require('./middleware'),
 	errorHandler = require('../../lib/errorHandler'),
+	accountHelpers = require.main.require('./src/controllers/accounts/helpers'),
 	async = require('async'),
 	utils = require('./utils');
 
 module.exports = function(middleware) {
 	var app = require('express').Router();
+
+	app.get('/:userslug/:type', apiMiddleware.requireUser, function(req, res){
+		var userData;
+		var groupsData;
+		var groupNames;
+		async.waterfall([
+			function (next) {
+				accountHelpers.getUserDataByUserSlug(req.params.userslug, req.uid, next);
+			},
+			function (_userData, next) {
+				userData = _userData;
+				if (!userData) {
+					return errorHandler.handle(true, res);
+				}
+				db.getSortedSetRevRange('groups:visible:createtime', 0, -1, next);
+			},
+			function (_groupNames, next) {
+				groupNames = _groupNames;
+				var method = Groups.isPending;
+				if (req.params.type === 'invited') {
+					method = Groups.isInvited;
+				}
+				async.map(groupNames, function (name, next) {
+					method(userData.uid, name, next);
+				}, next);
+			},
+			function (isMembers, next) {
+				var memberOf = [];
+				isMembers.forEach(function (isMember, index) {
+					if (isMember) {
+						memberOf.push(groupNames[index]);
+					}
+				});
+
+				Groups.getGroupsData(memberOf, next);
+			},
+			function (_groupsData, next) {
+				groupsData = _groupsData;
+				Groups.getMemberUsers(groupNames, 0, 3, next);
+			}
+		], function (err, members) {
+				groupsData.forEach(function (group, index) {
+					group.members = members[index];
+				});
+				errorHandler.handle(err, res, groupsData);
+		});
+	});
 
 	app.post('/', apiMiddleware.requireUser, apiMiddleware.requireAdmin, function(req, res) {
 		if (!utils.checkRequired(['name'], req, res)) {
