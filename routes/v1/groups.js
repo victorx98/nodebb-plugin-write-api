@@ -20,6 +20,7 @@ module.exports = function(middleware) {
 		var userData;
 		var groupsData;
 		var groupNames;
+		var memberOf;
 		async.waterfall([
 			function (next) {
 				accountHelpers.getUserDataByUserSlug(req.params.userslug, req.uid, next);
@@ -42,7 +43,7 @@ module.exports = function(middleware) {
 				}, next);
 			},
 			function (isMembers, next) {
-				var memberOf = [];
+				memberOf = [];
 				isMembers.forEach(function (isMember, index) {
 					if (isMember) {
 						memberOf.push(groupNames[index]);
@@ -53,13 +54,25 @@ module.exports = function(middleware) {
 			},
 			function (_groupsData, next) {
 				groupsData = _groupsData;
-				Groups.getMemberUsers(groupNames, 0, 3, next);
-			}
-		], function (err, members) {
+				Groups.getMemberUsers(memberOf, 0, 3, next);
+			},
+			function (members, next) {
 				groupsData.forEach(function (group, index) {
 					group.members = members[index];
+					group.isMember = false
+					group.isInvited = req.params.type === 'invited'
+					group.isPending = req.params.type === 'pending'
 				});
-				errorHandler.handle(err, res, groupsData);
+
+				async.map(memberOf, function (name, next) {
+					Groups.getMemberCount(name, next);
+				}, next);
+			}
+		], function (err, memberCounts) {
+			groupsData.forEach(function (group, index) {
+				group.memberCount = memberCounts[index];
+			});
+			errorHandler.handle(err, res, groupsData);
 		});
 	});
 
