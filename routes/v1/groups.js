@@ -76,7 +76,7 @@ module.exports = function(middleware) {
 		});
 	});
 
-	app.post('/', apiMiddleware.requireUser, apiMiddleware.requireAdmin, function(req, res) {
+	app.post('/', apiMiddleware.requireUser, function(req, res) {
 		if (!utils.checkRequired(['name'], req, res)) {
 			return false;
 		}
@@ -173,49 +173,53 @@ module.exports = function(middleware) {
 		});
 	});
 
-	app.post('/:slug/membership/accept', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
+	app.post('/:slug/membership/accept_or_reject', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
 		var toUid = req.body.toUid;
+		var type = req.body.type || 'accept';
+		if (type !== 'accept' && type !== 'reject') {
+			return errorHandler.handle(true, res);
+		}
+
 		var groupName = res.locals.groupName;
 		var uid = req.user.uid;
+		var method = type === 'accept' ? Groups.acceptMembership : Groups.rejectMembership;
 
 		async.waterfall([
 			function (next) {
-				Groups.acceptMembership(groupName, toUid, next);
-			},
-			function (next) {
-				Events.log({
-					type: 'accept-membership',
-					uid: uid,
-					ip: req.ip,
-					groupName: groupName,
-					targetUid: toUid,
-				});
-				setImmediate(next);
+				method(groupName, toUid, next);
 			}
 		], function (err) {
+			Events.log({
+				type: type+'-membership',
+				uid: uid,
+				ip: req.ip,
+				groupName: groupName,
+				targetUid: toUid,
+			});
 			errorHandler.handle(err, res);
 		});
 	});
-	app.post('/:slug/membership/reject', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
-		var toUid = req.body.toUid;
+	app.post('/:slug/membership/agree_or_disagree', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, function(req, res) {
 		var groupName = res.locals.groupName;
 		var uid = req.user.uid;
+		var type = req.body.type || 'agree';
+		if (type !== 'agree' && type !== 'disagree') {
+			return errorHandler.handle(true, res);
+		}
+		var method = type === 'agree' ? Groups.acceptMembership : Groups.rejectMembership;
 
 		async.waterfall([
 			function (next) {
-				Groups.rejectMembership(groupName, toUid, next);
-			},
-			function (next) {
-				Events.log({
-					type: 'reject-membership',
-					uid: uid,
-					ip: req.ip,
-					groupName: groupName,
-					targetUid: toUid,
-				});
-				setImmediate(next);
-			},
+				method(groupName, uid, next);
+			}
 		], function (err) {
+			Events.log({
+				type: 'reject-membership',
+				uid: uid,
+				ip: req.ip,
+				groupName: groupName,
+				targetUid: uid,
+			});
 			errorHandler.handle(err, res);
 		});
 	});
@@ -235,7 +239,6 @@ module.exports = function(middleware) {
 				}
 				return next(err);
 			});
-
 		};
 
 		async.waterfall([
