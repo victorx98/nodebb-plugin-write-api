@@ -26,7 +26,8 @@ module.exports = function(middleware) {
 					uid: req.user.uid,
 					timestamp: req.body.timestamp,
 					thumb: req.body.thumb,
-					etopic: req.body.etopic
+					etopic: req.body.etopic,
+					poll: req.body.poll
 				};
 
 			Topics.post(payload, function(err, data) {

@@ -8,20 +8,9 @@ async = require('async')
     Hooks.filter = {}
     Hooks.action = {}
 
-    Hooks.filter.groupCreate = (obj, callback)->
-        {group, data} = obj
-        return callback(null, obj) if !data.isClub
-        parentCat = null
-
+    setCategoryPrivileges = (category, groupName, callback) ->
         async.waterfall [
             (next) ->
-                # create Uni category
-                Categories.create {
-                    name: data.name,
-                    description: data.description,
-                }, next
-            (category, next) ->
-                parentCat = category
                 removePrivileges = [
                     'topics:read', 'topics:create',
                     'topics:reply', 'posts:edit',
@@ -30,44 +19,65 @@ async = require('async')
                 ]
 
                 privileges.categories.rescind removePrivileges,
-                parentCat.cid, 'registered-users', next
-
+                category.cid, 'registered-users', next
             (next) ->
                 removePrivileges = [
                     'find', 'read', 'topics:read'
                 ]
                 privileges.categories.rescind removePrivileges,
-                parentCat.cid, 'guests', next
-
+                category.cid, 'guests', next
             (next) ->
                 defaultPrivileges = ['find', 'read', 'topics:read',
                 'topics:create', 'topics:reply',
                 'posts:edit', 'posts:delete', 'topics:delete',
-                'upload:post:image', 'etopic:create']
-                privileges.categories.give defaultPrivileges,
-                parentCat.cid, data.name, next
+                'upload:post:image',
+                'etopic:create', 'hiring:create', 'poll:create']
 
+                privileges.categories.give defaultPrivileges,
+                category.cid, groupName, next
+        ], callback
+
+    createCategory = (data, groupName, callback) ->
+        Categories.create data, (err, category)->
+            return callback err if err
+            setCategoryPrivileges category, groupName, (err)->
+                return callback err, category
+
+    Hooks.filter.groupCreate = (obj, callback)->
+        {group, data} = obj
+        return callback(null, obj) if !data.isClub
+        parentCat = null
+
+        async.waterfall [
             (next) ->
+                createCategory {
+                    name: data.name,
+                    description: data.description
+                }, data.name, next
+
+            (category, next) ->
                 # create children categories
+                parentCat = category
+
                 async.waterfall [
                     (next) ->
-                        Categories.create {
+                        createCategory {
                             name: '活动',
                             isEvent: true,
                             parentCid: parentCat.cid,
-                        }, next
+                        }, data.name, next
                     (cat, next) ->
-                        Categories.create {
+                        createCategory {
                             name: '投票',
                             isVote: true,
                             parentCid: parentCat.cid,
-                        }, next
+                        }, data.name, next
                     (cat, next) ->
-                        Categories.create {
+                        createCategory {
                             name: '话题',
                             isDiscuss: true,
                             parentCid: parentCat.cid,
-                        }, next
+                        }, data.name, next
                 ], next
         ], (err, ret) ->
             group.mainCid = parentCat.cid
