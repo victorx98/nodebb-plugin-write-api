@@ -27,7 +27,7 @@ module.exports = function(middleware) {
 					timestamp: req.body.timestamp,
 					thumb: req.body.thumb,
 					etopic: req.body.etopic,
-					poll: req.body.poll
+					pollData: req.body.pollData
 				};
 
 			Topics.post(payload, function(err, data) {
@@ -70,7 +70,8 @@ module.exports = function(middleware) {
 				pid: req.body.pid,
 				content: req.body.content,
 				pictures: req.body.pictures || [],
-				etopic: req.body.etopic
+				etopic: req.body.etopic,
+				pollData: req.body.pollData
 			};
 
 			// Maybe a "set if available" utils method may come in handy

@@ -69,7 +69,7 @@ async = require('async')
                     (cat, next) ->
                         createCategory {
                             name: '投票',
-                            isVote: true,
+                            isPoll: true,
                             parentCid: parentCat.cid,
                         }, data.name, next
                     (cat, next) ->
@@ -86,7 +86,7 @@ async = require('async')
     Hooks.filter.categoryCreate = (obj, callback) ->
         {category, data} = obj
         category.isEvent = data.isEvent
-        category.isVote = data.isVote
+        category.isPoll = data.isPoll
         category.isDiscuss = data.isDiscuss
         return callback(null, obj)
 
