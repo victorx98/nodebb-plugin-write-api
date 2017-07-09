@@ -76,6 +76,15 @@ module.exports = function(middleware) {
 		});
 	});
 
+	app.get('/search', apiMiddleware.requireUser, function (req, res) {
+		Groups.search(req.query.q, {filterHidden: true}, function (err, groups) {
+			groups = (groups || []).filter(function (group) {
+				return group.mainCid;
+			});
+			errorHandler.handle(err, res, groups);
+		})
+	});
+
 	app.post('/', apiMiddleware.requireUser, function(req, res) {
 		if (!utils.checkRequired(['name'], req, res)) {
 			return false;
