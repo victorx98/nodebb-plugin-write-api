@@ -182,6 +182,14 @@ module.exports = function(middleware) {
 		});
 	});
 
+	app.delete('/:slug/kickout', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
+		var toUid = req.body.toUid;
+
+		Groups.leave(res.locals.groupName, toUid, function(err) {
+			errorHandler.handle(err, res);
+		});
+	});
+
 	app.post('/:slug/membership/accept_or_reject', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
 		var toUid = req.body.toUid;
 		var type = req.body.type || 'accept';
