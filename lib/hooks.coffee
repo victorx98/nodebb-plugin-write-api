@@ -54,7 +54,8 @@ async = require('async')
             (next) ->
                 createCategory {
                     name: data.name,
-                    description: data.description
+                    description: data.description,
+                    groupSlug: group.slug,
                 }, data.name, next
 
             (category, next) ->
@@ -67,18 +68,21 @@ async = require('async')
                             name: '活动',
                             isEvent: true,
                             parentCid: parentCat.cid,
+                            groupSlug: group.slug
                         }, data.name, next
                     (cat, next) ->
                         createCategory {
                             name: '投票',
                             isPoll: true,
                             parentCid: parentCat.cid,
+                            groupSlug: group.slug
                         }, data.name, next
                     (cat, next) ->
                         createCategory {
                             name: '二手物品',
                             isSale: true,
                             parentCid: parentCat.cid,
+                            groupSlug: group.slug
                         }, data.name, next
                 ], next
         ], (err, ret) ->
@@ -90,6 +94,7 @@ async = require('async')
         category.isEvent = data.isEvent
         category.isPoll = data.isPoll
         category.isSale = data.isSale
+        category.groupSlug = data.groupSlug
         return callback(null, obj)
 
 )(exports)
