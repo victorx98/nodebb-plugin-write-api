@@ -11,8 +11,10 @@ async = require('async')
     setCategoryPrivileges = (category, groupName, callback) ->
         async.waterfall [
             (next) ->
+                # default public group user can find and read topics;
                 removePrivileges = [
-                    'topics:read', 'topics:create',
+                    # 'topics:read',
+                    'topics:create',
                     'topics:reply', 'posts:edit',
                     'posts:delete', 'topics:delete',
                     'upload:post:image'
@@ -74,8 +76,8 @@ async = require('async')
                         }, data.name, next
                     (cat, next) ->
                         createCategory {
-                            name: '话题',
-                            isDiscuss: true,
+                            name: '二手物品',
+                            isSale: true,
                             parentCid: parentCat.cid,
                         }, data.name, next
                 ], next
@@ -87,7 +89,7 @@ async = require('async')
         {category, data} = obj
         category.isEvent = data.isEvent
         category.isPoll = data.isPoll
-        category.isDiscuss = data.isDiscuss
+        category.isSale = data.isSale
         return callback(null, obj)
 
 )(exports)
