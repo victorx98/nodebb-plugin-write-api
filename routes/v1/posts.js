@@ -4,6 +4,8 @@
 var posts = require.main.require('./src/posts'),
   User = require.main.require('./src/user'),
   db = require.main.require('./src/database'),
+  topics = require.main.require('./src/topics'),
+  privileges = require.main.require('./src/privileges'),
   apiMiddleware = require('./middleware'),
   errorHandler = require('../../lib/errorHandler'),
   async = require('async'),
@@ -80,6 +82,45 @@ module.exports = function(middleware) {
       errorHandler.handle(err, res, data);
     });
   });
+
+	app.route('/:pid/replies').get(function (req, res) {
+		var pid = parseInt(req.params.pid, 10);
+		if (!pid) {
+			return errorHandler.handle(new Error('[[error:invalid-data]]'), res);
+		}
+		var postPrivileges;
+
+		async.waterfall([
+			function (next) {
+				posts.getPidsFromSet('pid:' + pid + ':replies', 0, -1, false, next);
+			},
+			function (pids, next) {
+				async.parallel({
+					posts: function (next) {
+						posts.getPostsByPids(pids, req.user.uid, next);
+					},
+					privileges: function (next) {
+						privileges.posts.get(pids, req.user.uid, next);
+					},
+				}, next);
+			},
+			function (results, next) {
+				postPrivileges = results.privileges;
+				results.posts = results.posts.filter(function (postData, index) {
+					return postData && postPrivileges[index].read;
+				});
+				topics.addPostData(results.posts, req.user.uid, next);
+			},
+			function (postData, next) {
+				postData.forEach(function (postData) {
+					posts.modifyPostByPrivilege(postData, postPrivileges.isAdminOrMod);
+				});
+				next(null, postData);
+			},
+		], function(err, data) {
+			return errorHandler.handle(err, res, data);
+		});
+	});
 
   return app;
 };
