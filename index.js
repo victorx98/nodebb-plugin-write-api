@@ -42,6 +42,18 @@ API.init = function(data, callback) {
 	callback();
 };
 
+API.onPreload = function (data, callback) {
+	function addCORSHeader (req, res, next) {
+		// to use cookie, we need to set allow credentials
+		if (meta.config['access-control-allow-origin']) {
+			res.setHeader('Access-Control-Allow-Credentials', true);
+		}
+		next();
+	}
+	data.app.use(addCORSHeader);
+	return callback();
+};
+
 API.addMenuItem = function(custom_header, callback) {
 	custom_header.plugins.push({
 		route: '/plugins/write-api',
