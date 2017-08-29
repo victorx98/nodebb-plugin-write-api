@@ -96,6 +96,10 @@ Middleware.requireUser = function(req, res, next) {
 			}
 		});
 	} else {
+		if (req.user && req.user.uid) {
+			return next();
+		}
+		console.error('requireUser login data error', req.body);
 		errorHandler.respond(401, res);
 	}
 };
