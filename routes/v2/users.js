@@ -30,6 +30,9 @@ module.exports = function(/*middleware*/) {
 			if (parseInt(req.params.uid, 10) !== parseInt(req.user.uid, 10) && !res.locals.isAdmin) {
 				return errorHandler.respond(401, res);
 			}
+			
+			// This is the update uid
+			req.body.uid = req.params.uid;
 
 			Users.updateProfile(req.params.uid, req.body, function(err) {
 				return errorHandler.handle(err, res);
