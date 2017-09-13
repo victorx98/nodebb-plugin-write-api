@@ -44,13 +44,13 @@ module.exports = function(middleware) {
     });
 
   app.route('/:pid/bookmark').post(apiMiddleware.requireUser, function(req, res) {
-    posts.bookmark(req.params.pid, req.user.uid, function(err) {
-      errorHandler.handle(err, res);
+    posts.bookmark(req.params.pid, req.user.uid, function(err, data) {
+      errorHandler.handle(err, res, data);
     })
   });
   app.route('/:pid/unbookmark').post(apiMiddleware.requireUser, function(req, res) {
-    posts.unbookmark(req.params.pid, req.user.uid, function(err) {
-      errorHandler.handle(err, res);
+    posts.unbookmark(req.params.pid, req.user.uid, function(err, data) {
+      errorHandler.handle(err, res, data);
     })
   });
   app.route('/:pid/bookmarked-users').get(apiMiddleware.requireUser, function(req, res) {
