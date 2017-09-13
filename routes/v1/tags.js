@@ -12,12 +12,12 @@ module.exports = function(middleware) {
   app.route('/:tag')
     .post(apiMiddleware.requireUser, function(req, res) {
     	topics.followTag(req.params.tag, req.uid, function(err) {
-        errorHandler.handle(err, res);
-      });
+            errorHandler.handle(err, res, err ? null : {tag: req.params.tag, followed: true});
+        });
     })
     .delete(apiMiddleware.requireUser, function(req, res) {
       topics.unfollowTag(req.params.tag, req.uid, function(err) {
-        errorHandler.handle(err, res);
+        errorHandler.handle(err, res, err ? null : {tag: req.params.tag, unfollowed: true});
       });
     });
   return app;
