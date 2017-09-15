@@ -27,6 +27,7 @@ module.exports = function(middleware) {
 					timestamp: req.body.timestamp,
 					thumb: req.body.thumb,
 					etopic: req.body.etopic,
+					hiring: req.body.hiring,
 					pollData: req.body.pollData
 				};
 
