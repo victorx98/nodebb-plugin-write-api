@@ -73,13 +73,13 @@ module.exports = function(/*middleware*/) {
 
 	app.post('/:uid/follow', apiMiddleware.requireUser, function(req, res) {
 		Users.follow(req.user.uid, req.params.uid, function(err) {
-			return errorHandler.handle(err, res);
+			return errorHandler.handle(err, res, err ? null: {uid: req.params.uid, followed: true});
 		});
 	});
 
 	app.delete('/:uid/follow', apiMiddleware.requireUser, function(req, res) {
 		Users.unfollow(req.user.uid, req.params.uid, function(err) {
-			return errorHandler.handle(err, res);
+			return errorHandler.handle(err, res, err ? null: {uid: req.params.uid, unfollowed: true});
 		});
 	});
 

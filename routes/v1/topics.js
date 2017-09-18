@@ -88,12 +88,12 @@ module.exports = function(middleware) {
 	app.route('/:tid/follow')
 		.post(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
 			Topics.follow(req.params.tid, req.user.uid, function(err) {
-				errorHandler.handle(err, res);
+				errorHandler.handle(err, res, err ? null: {tid: req.params.tid, followed: true});
 			});
 		})
 		.delete(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
 			Topics.unfollow(req.params.tid, req.user.uid, function(err) {
-				errorHandler.handle(err, res);
+				errorHandler.handle(err, res, err ? null: {tid: req.params.tid, unfollowed: true});
 			});
 		});
 
