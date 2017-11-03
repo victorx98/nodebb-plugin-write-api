@@ -3,6 +3,7 @@
 
 var Topics = require.main.require('./src/topics'),
 	Posts = require.main.require('./src/posts'),
+	db = require.main.require('./src/database'),
 	apiMiddleware = require('./middleware'),
 	errorHandler = require('../../lib/errorHandler'),
 	utils = require('./utils'),
@@ -53,7 +54,15 @@ module.exports = function(middleware) {
 			if (req.body.toPid) { payload.toPid = req.body.toPid; }
 
 			Topics.reply(payload, function(err, returnData) {
-				errorHandler.handle(err, res, returnData);
+				if (err) return errorHandler.handle(err, res, returnData);
+				if (req.body.audio) {
+					db.setObjectField('post:'+returnData.pid, 'audio', req.body.audio, function (err) {
+						returnData.audio = req.body.audio;
+						errorHandler.handle(err, res, returnData);
+					});
+				} else {
+					errorHandler.handle(err, res, returnData);	
+				}
 			});
 		})
 		.delete(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
