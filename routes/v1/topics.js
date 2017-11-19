@@ -7,7 +7,9 @@ var Topics = require.main.require('./src/topics'),
 	apiMiddleware = require('./middleware'),
 	errorHandler = require('../../lib/errorHandler'),
 	utils = require('./utils'),
-	winston = require.main.require('winston');
+	winston = require.main.require('winston'),
+	async = require.main.require('async'),
+	validator = module.parent.require('validator');
 
 module.exports = function(middleware) {
 	var app = require('express').Router();
@@ -17,23 +19,68 @@ module.exports = function(middleware) {
 			if (!utils.checkRequired(['cid', 'title', 'content'], req, res)) {
 				return false;
 			}
+			if (req.body.link) {
+				if (!validator.isURL(req.body.link)) {
+					return callback(new Error('[[error:invalid-data]]'));
+				}
+			}
 
 			var payload = {
-					cid: req.body.cid,
-					title: req.body.title,
-					content: req.body.content,
-					tags: req.body.tags || [],
-					pictures: req.body.pictures || [],
-					uid: req.user.uid,
-					timestamp: req.body.timestamp,
-					thumb: req.body.thumb,
-					etopic: req.body.etopic,
-					hiring: req.body.hiring,
-					pollData: req.body.pollData
-				};
+				cid: req.body.cid,
+				title: req.body.title,
+				content: req.body.content,
+				tags: req.body.tags || [],
+				pictures: req.body.pictures || [],
+				uid: req.user.uid,
+				timestamp: req.body.timestamp,
+				thumb: req.body.thumb,
+				etopic: req.body.etopic,
+				hiring: req.body.hiring,
+				pollData: req.body.pollData
+			};
 
-			Topics.post(payload, function(err, data) {
-				return errorHandler.handle(err, res, data);
+			Topics.post(payload, function(err, returnData) {
+				if (err) return errorHandler.handle(err, res, returnData);
+				async.parallel([
+					function (next) {
+						if (req.body.document) {
+							returnData.topicData.document = req.body.document;
+							db.setObjectField('topic:'+returnData.topicData.tid, 'document', req.body.document, next);
+						} else {
+							next();
+						}
+					}, 
+					function (next) {
+						if (req.body.link) {
+							returnData.topicData.link = req.body.link;
+							db.setObjectField('topic:'+returnData.topicData.tid, 'link', req.body.link, next);
+						} else {
+							next();
+						}
+					},
+					function (next) {
+						var fields = ['isFiles', 'isLinks', 'isTweets'];
+						db.getObjectFields('category:' + returnData.topicData.category.cid, fields, function (err, catData) {
+							if (err) return errorHandler.handle(err, res, returnData);
+							if (catData.isFiles ||
+								catData.isLinks ||
+								catData.isTweets) {
+								async.parallel([
+									function (next) {
+										db.sortedSetRemove("topics:recent", returnData.topicData.tid, next);
+									},
+									function (next) {
+										db.sortedSetRemove("uid:"+req.uid+":topics", returnData.topicData.tid, next);
+									}
+								], next);
+							} else {
+								next();
+							}
+						});
+					}
+				], function (err) {
+					errorHandler.handle(err, res, returnData);
+				});
 			});
 		});
 
@@ -74,6 +121,11 @@ module.exports = function(middleware) {
 			if (!utils.checkRequired(['pid', 'content'], req, res)) {
 				return false;
 			}
+			if (req.body.link) {
+				if (!validator.isURL(req.body.link)) {
+					return callback(new Error('[[error:invalid-data]]'));
+				}
+			}
 
 			var payload = {
 				uid: req.user.uid,
@@ -91,7 +143,27 @@ module.exports = function(middleware) {
 			if (req.body.tags) { payload.tags = req.body.tags; }
 
 			Posts.edit(payload, function(err, returnData) {
-				errorHandler.handle(err, res, returnData);
+				if (err) return errorHandler.handle(err, res, returnData);
+				async.parallel([
+					function (next) {
+						if (req.body.document) {
+							returnData.topic.document = req.body.document;
+							db.setObjectField('topic:'+returnData.topic.tid, 'document', req.body.document, next);
+						} else {
+							next();
+						}
+					}, 
+					function (next) {
+						if (req.body.link) {
+							returnData.topic.link = req.body.link;
+							db.setObjectField('topic:'+returnData.topic.tid, 'link', req.body.link, next);
+						} else {
+							next();
+						}
+					}
+				], function (err) {
+					errorHandler.handle(err, res, returnData);
+				});
 			});
 		});
 

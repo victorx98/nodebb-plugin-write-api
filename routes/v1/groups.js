@@ -59,9 +59,9 @@ module.exports = function(middleware) {
 			function (members, next) {
 				groupsData.forEach(function (group, index) {
 					group.members = members[index];
-					group.isMember = false
-					group.isInvited = req.params.type === 'invited'
-					group.isPending = req.params.type === 'pending'
+					group.isMember = false;
+					group.isInvited = req.params.type === 'invited';
+					group.isPending = req.params.type === 'pending';
 				});
 
 				async.map(memberOf, function (name, next) {
