@@ -30,7 +30,6 @@ module.exports = function(middleware) {
 				title: req.body.title,
 				content: req.body.content,
 				tags: req.body.tags || [],
-				pictures: req.body.pictures || [],
 				uid: req.user.uid,
 				timestamp: req.body.timestamp,
 				thumb: req.body.thumb,
@@ -43,15 +42,10 @@ module.exports = function(middleware) {
 				if (err) return errorHandler.handle(err, res, returnData);
 				async.parallel([
 					function (next) {
-						if (req.body.document) {
-							returnData.topicData.document = req.body.document;
-							db.setObjectField('topic:'+returnData.topicData.tid, 'document', req.body.document, next);
-						} else {
-							next();
-						}
-					}, 
-					function (next) {
-						if (req.body.link) {
+						if (req.body.documents) {
+							returnData.topicData.documents = req.body.documents;
+							db.setObjectField('topic:'+returnData.topicData.tid, 'documents', req.body.documents, next);
+						} else if (req.body.link) {
 							returnData.topicData.link = req.body.link;
 							db.setObjectField('topic:'+returnData.topicData.tid, 'link', req.body.link, next);
 						} else {
@@ -131,7 +125,6 @@ module.exports = function(middleware) {
 				uid: req.user.uid,
 				pid: req.body.pid,
 				content: req.body.content,
-				pictures: req.body.pictures || [],
 				etopic: req.body.etopic,
 				pollData: req.body.pollData
 			};
@@ -146,15 +139,10 @@ module.exports = function(middleware) {
 				if (err) return errorHandler.handle(err, res, returnData);
 				async.parallel([
 					function (next) {
-						if (req.body.document) {
-							returnData.topic.document = req.body.document;
-							db.setObjectField('topic:'+returnData.topic.tid, 'document', req.body.document, next);
-						} else {
-							next();
-						}
-					}, 
-					function (next) {
-						if (req.body.link) {
+						if (req.body.documents) {
+							returnData.topic.documents = req.body.documents;
+							db.setObjectField('topic:'+returnData.topic.tid, 'documents', req.body.documents, next);
+						} else if (req.body.link) {
 							returnData.topic.link = req.body.link;
 							db.setObjectField('topic:'+returnData.topic.tid, 'link', req.body.link, next);
 						} else {
