@@ -126,7 +126,8 @@ module.exports = function(middleware) {
 				pid: req.body.pid,
 				content: req.body.content,
 				etopic: req.body.etopic,
-				pollData: req.body.pollData
+				pollData: req.body.pollData,
+				hiring: req.body.hiring
 			};
 
 			// Maybe a "set if available" utils method may come in handy
