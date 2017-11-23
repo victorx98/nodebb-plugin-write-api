@@ -140,6 +140,34 @@ module.exports = function(middleware) {
 				if (err) return errorHandler.handle(err, res, returnData);
 				async.parallel([
 					function (next) {
+						var k,f,c;
+						if (req.body.etopic) {
+							k = 'etid';
+							f = function (etid, cb) {
+								Topics.getEventTopic(etid, req.uid, cb);
+							};
+							c = 'etopic';
+						} else if (req.body.hiring) {
+							k = 'htid';
+							f = Topics.getHiringTopic;
+							c = 'hiring';
+						} else {
+							return next();
+						}
+						async.waterfall([
+							function (next) {
+								return db.getObjectField('topic:'+returnData.topic.tid, k, next);
+							},
+							function (kid, next) {
+								if (!kid) return next();
+								f(kid, next);
+							}
+						], function (err, data) {
+							returnData.topic[c] = data;
+							next(err);
+						});
+					},
+					function (next) {
 						if (req.body.documents) {
 							returnData.topic.documents = req.body.documents;
 							db.setObjectField('topic:'+returnData.topic.tid, 'documents', req.body.documents, next);
