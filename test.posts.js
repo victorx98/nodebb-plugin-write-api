@@ -1,0 +1,171 @@
+// create group
+// db.getCollection('objects').find({_key: /group:test/})
+// 
+$.post('/api/v1/groups', {
+    name: 'test-group-02',
+    isClub: true
+}).then(function (res) {
+    console.log(res);
+});
+
+// create topic in the group category.
+// db.getCollection('objects').find({_key: /topic:\d+$/}).sort({_id: -1})
+// db.getCollection('objects').find({_key: 'post:213:documents'})
+// db.getCollection('objects').find({_key: 'document:1'})
+// db.getCollection('objects').find({_key: /post:\d+:(audios|documents|pictures|links)/}).sort({_id: -1})
+$.post('/api/v1/topics', {
+    cid: 14,
+    title: 'group topic title test 01',
+    content: 'group topic content test 01',
+    documents: [{
+        filename: 'abc.txt',
+        filepath: '/abc.txt'
+    }, {
+        filename: 'edf.txt',
+        filepath: '/edf.txt'
+    }]
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics', {
+    cid: 14,
+    title: 'group topic title test 02',
+    content: 'group topic content test 02',
+    links: [{
+        link: 'https://v2mm.tech',
+        name: 'v2mm'
+    }, {
+        link: 'https://github.com',
+        name: 'github'
+    }]
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics', {
+    cid: 14,
+    title: 'group topic title test 02',
+    content: 'group topic content test 02',
+    audio: {
+        src: 'https://v2mm.tech/v2mm.mp3',
+        name: 'v2mm.mp3'
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+// reply topic
+$.post('/api/v1/topics/110', {
+    cid: 14,
+    content: 'group topic content test 02',
+    documents: [{
+        filename: 'abc-reply.txt',
+        filepath: '/abc-reply.txt'
+    }, {
+        filename: 'edf-reply.txt',
+        filepath: '/edf-reply.txt'
+    }]
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics/110', {
+    cid: 14,
+    content: 'group topic content test 02',
+    links: [{
+        link: 'https://v2mm.tech/topic/3',
+        name: 'v2mm-reply'
+    }, {
+        link: 'https://github.com',
+        name: 'github-reply'
+    }]
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics/110', {
+    cid: 14,
+    content: 'group topic content test 02',
+    audio: {
+        src: 'https://v2mm.tech/v2mm-reply.mp3',
+        name: 'v2mm-reply.mp3'
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+// edit topic/post
+$.ajax({
+    method: 'put',
+    url: '/api/v1/topics/110', 
+    data: {
+        cid: 14,
+        pid: 216,
+        content: 'group topic content test 03 --edited',
+        documents: [{
+            filename: 'abc-edit.txt',
+            filepath: '/abc-edit.txt'
+        }, {
+            filename: 'edf-edit.txt',
+            filepath: '/edf-edit.txt'
+        }]
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.ajax({
+    method: 'put',
+    url: '/api/v1/topics/111', 
+    data: {
+        cid: 14,
+        pid: 217,
+        content: 'group topic content test 03 --edited',
+        links: [{
+            link: 'https://v2mm.tech/topic/3',
+            name: 'v2mm-edit'
+        }, {
+            link: 'https://github.com',
+            name: 'github-edit'
+        }]
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.ajax({
+    method: 'put',
+    url: '/api/v1/topics/112', 
+    data: {
+        cid: 14,
+        pid: 218,
+        content: 'group topic content test 03 --edited',
+        audio: {
+            src: 'https://v2mm.tech/v2mm-edit.mp3',
+            name: 'v2mm-edit.mp3'
+        }
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+// edit post which is not mainPost
+$.ajax({
+    method: 'put',
+    url: '/api/v1/topics/110', 
+    data: {
+        cid: 14,
+        pid: 219,
+        content: 'group topic content test 03 --edited',
+        documents: [{
+            filename: 'abc-edit-2.txt',
+            filepath: '/abc-edit-2.txt'
+        }, {
+            filename: 'edf-edit-2.txt',
+            filepath: '/edf-edit-2.txt'
+        }]
+    }
+}).then(function (res) {
+    console.log(res);
+});

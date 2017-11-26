@@ -48,7 +48,6 @@ async = require('async')
     Hooks.filter.groupCreate = (obj, callback)->
         {group, data} = obj
         return callback(null, obj) if !data.isClub
-        parentCat = filesCat = linksCat = tweetsCat = null
 
         async.waterfall [
             (next) ->
@@ -57,51 +56,14 @@ async = require('async')
                     description: data.description,
                     groupSlug: group.slug,
                 }, data.name, next
-
-            (category, next) ->
-                # create children categories
-                parentCat = category
-
-                async.waterfall [
-                    (next) ->
-                        createCategory {
-                            name: 'Files',
-                            isFiles: true,
-                            parentCid: parentCat.cid,
-                            groupSlug: group.slug
-                        }, data.name, next
-                    (cat, next) ->
-                        filesCat = cat
-                        createCategory {
-                            name: 'Links',
-                            isLinks: true,
-                            parentCid: parentCat.cid,
-                            groupSlug: group.slug
-                        }, data.name, next
-                    (cat, next) ->
-                        linksCat = cat
-                        createCategory {
-                            name: 'Tweets',
-                            isTweets: true,
-                            parentCid: parentCat.cid,
-                            groupSlug: group.slug
-                        }, data.name, next
-                ], next
         ], (err, cat) ->
-            tweetsCat = cat
-            group.mainCid = parentCat.cid
-            group.filesCid = filesCat.cid
-            group.linksCid = linksCat.cid
-            group.tweetsCid = tweetsCat.cid
-            group.description2 = data.description2
+            group.cid = cat.cid
+            group.description2 = data.description2 || ''
 
             return callback(err, obj)
 
     Hooks.filter.categoryCreate = (obj, callback) ->
         {category, data} = obj
-        category.isFiles = data.isFiles
-        category.isLinks = data.isLinks
-        category.isTweets = data.isTweets
         category.groupSlug = data.groupSlug
         return callback(null, obj)
 

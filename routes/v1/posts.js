@@ -15,6 +15,7 @@ var posts = require.main.require('./src/posts'),
 module.exports = function(middleware) {
   var app = require('express').Router();
 
+  // deprecated, use topics/edit instead.
   app.route('/:pid')
     .put(apiMiddleware.requireUser, function(req, res) {
       if (!utils.checkRequired(['content'], req, res)) {

@@ -19,11 +19,6 @@ module.exports = function(middleware) {
 			if (!utils.checkRequired(['cid', 'title', 'content'], req, res)) {
 				return false;
 			}
-			if (req.body.link) {
-				if (!validator.isURL(req.body.link)) {
-					return callback(new Error('[[error:invalid-data]]'));
-				}
-			}
 
 			var payload = {
 				cid: req.body.cid,
@@ -43,22 +38,38 @@ module.exports = function(middleware) {
 				async.parallel([
 					function (next) {
 						if (req.body.documents) {
-							returnData.topicData.documents = req.body.documents;
-							db.setObjectField('topic:'+returnData.topicData.tid, 'documents', req.body.documents, next);
-						} else if (req.body.link) {
-							returnData.topicData.link = req.body.link;
-							db.setObjectField('topic:'+returnData.topicData.tid, 'link', req.body.link, next);
+							Posts.addAttachments(returnData.postData.pid, 'document', req.body.documents, next);
+						} else if (req.body.links) {
+							Posts.addAttachments(returnData.postData.pid, 'link', req.body.links, next);
+						} else if (req.body.audios) {
+							Posts.addAttachments(returnData.postData.pid, 'audio', req.body.audios, next);
+						} else if (req.body.audio) {
+							Posts.addAttachments(returnData.postData.pid, 'audio', [req.body.audio], next);
 						} else {
 							next();
 						}
 					},
 					function (next) {
-						var fields = ['isFiles', 'isLinks', 'isTweets'];
-						db.getObjectFields('category:' + returnData.topicData.category.cid, fields, function (err, catData) {
+						if (req.body.documents) {
+							returnData.postData.documents = req.body.documents;
+							db.setObjectField('post:'+returnData.postData.pid, 'documents', req.body.documents, next);
+						} else if (req.body.links) {
+							returnData.postData.links = req.body.links;
+							db.setObjectField('post:'+returnData.postData.pid, 'links', req.body.links, next);
+						} else if (req.body.audios) {
+							returnData.postData.audios = req.body.audios;
+							db.setObjectField('post:'+returnData.postData.pid, 'audios', req.body.audios, next);
+						} else if (req.body.audio) {
+							returnData.postData.audio = req.body.audio;
+							db.setObjectField('post:'+returnData.postData.pid, 'audio', req.body.audio, next);
+						} else {
+							next();
+						}
+					},
+					function (next) {
+						db.getObjectField('category:' + returnData.topicData.category.cid, 'groupSlug', function (err, groupSlug) {
 							if (err) return errorHandler.handle(err, res, returnData);
-							if (catData.isFiles ||
-								catData.isLinks ||
-								catData.isTweets) {
+							if (groupSlug) {
 								async.parallel([
 									function (next) {
 										db.sortedSetRemove("topics:recent", returnData.topicData.tid, next);
@@ -96,14 +107,58 @@ module.exports = function(middleware) {
 
 			Topics.reply(payload, function(err, returnData) {
 				if (err) return errorHandler.handle(err, res, returnData);
-				if (req.body.audio) {
-					db.setObjectField('post:'+returnData.pid, 'audio', req.body.audio, function (err) {
-						returnData.audio = req.body.audio;
-						errorHandler.handle(err, res, returnData);
-					});
-				} else {
-					errorHandler.handle(err, res, returnData);	
-				}
+
+				async.parallel([
+					function (next) {
+						if (req.body.documents) {
+							Posts.addAttachments(returnData.pid, 'document', req.body.documents, next);
+						} else if (req.body.links) {
+							Posts.addAttachments(returnData.pid, 'link', req.body.links, next);
+						} else if (req.body.audios) {
+							Posts.addAttachments(returnData.pid, 'audio', req.body.audios, next);
+						} else if (req.body.audio) {
+							Posts.addAttachments(returnData.pid, 'audio', [req.body.audio], next);
+						} else {
+							next();
+						}
+					},
+					function (next) {
+						if (req.body.documents) {
+							returnData.documents = req.body.documents;
+							db.setObjectField('post:'+returnData.pid, 'documents', req.body.documents, next);
+						} else if (req.body.links) {
+							returnData.links = req.body.links;
+							db.setObjectField('post:'+returnData.pid, 'links', req.body.links, next);
+						} else if (req.body.audios) {
+							returnData.audios = req.body.audios;
+							db.setObjectField('post:'+returnData.pid, 'audios', req.body.audios, next);
+						} else if (req.body.audio) {
+							returnData.audio = req.body.audio;
+							db.setObjectField('post:'+returnData.pid, 'audio', req.body.audio, next);
+						} else {
+							next();
+						}
+					},
+					function (next) {
+						db.getObjectField('category:' + returnData.cid, 'groupSlug', function (err, groupSlug) {
+							if (err) return errorHandler.handle(err, res, returnData);
+							if (groupSlug) {
+								async.parallel([
+									function (next) {
+										db.sortedSetRemove("topics:recent", returnData.tid, next);
+									},
+									function (next) {
+										db.sortedSetRemove("uid:"+req.uid+":topics", returnData.tid, next);
+									}
+								], next);
+							} else {
+								next();
+							}
+						});
+					}
+				], function (err) {
+					errorHandler.handle(err, res, returnData);
+				});
 			});
 		})
 		.delete(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
@@ -114,11 +169,6 @@ module.exports = function(middleware) {
 		.put(apiMiddleware.requireUser, function(req, res) {
 			if (!utils.checkRequired(['pid', 'content'], req, res)) {
 				return false;
-			}
-			if (req.body.link) {
-				if (!validator.isURL(req.body.link)) {
-					return callback(new Error('[[error:invalid-data]]'));
-				}
 			}
 
 			var payload = {
@@ -168,15 +218,55 @@ module.exports = function(middleware) {
 						});
 					},
 					function (next) {
-						if (req.body.documents) {
-							returnData.topic.documents = req.body.documents;
-							db.setObjectField('topic:'+returnData.topic.tid, 'documents', req.body.documents, next);
-						} else if (req.body.link) {
-							returnData.topic.link = req.body.link;
-							db.setObjectField('topic:'+returnData.topic.tid, 'link', req.body.link, next);
-						} else {
-							next();
-						}
+						async.parallel([
+							function (next) {
+								if (req.body.documents) {
+									Posts.addAttachments(returnData.post.pid, 'document', req.body.documents, next);
+								} else if (req.body.links) {
+									Posts.addAttachments(returnData.post.pid, 'link', req.body.links, next);
+								} else if (req.body.audios) {
+									Posts.addAttachments(returnData.post.pid, 'audio', req.body.audios, next);
+								} else if (req.body.audio) {
+									Posts.addAttachments(returnData.post.pid, 'audio', [req.body.audio], next);
+								} else {
+									next();
+								}
+							},
+							function (next) {
+								if (req.body.documents) {
+									returnData.post.documents = req.body.documents;
+									db.setObjectField('post:'+returnData.post.pid, 'documents', req.body.documents, next);
+								} else if (req.body.links) {
+									returnData.post.links = req.body.links;
+									db.setObjectField('post:'+returnData.post.pid, 'links', req.body.links, next);
+								} else if (req.body.audios) {
+									returnData.post.audios = req.body.audios;
+									db.setObjectField('post:'+returnData.post.pid, 'audios', req.body.audios, next);
+								} else if (req.body.audio) {
+									returnData.post.audio = req.body.audio;
+									db.setObjectField('post:'+returnData.post.pid, 'audio', req.body.audio, next);
+								} else {
+									next();
+								}
+							},
+							function (next) {
+								db.getObjectField('category:' + returnData.topic.cid, 'groupSlug', function (err, groupSlug) {
+									if (err) return errorHandler.handle(err, res, returnData);
+									if (groupSlug) {
+										async.parallel([
+											function (next) {
+												db.sortedSetRemove("topics:recent", returnData.topic.tid, next);
+											},
+											function (next) {
+												db.sortedSetRemove("uid:"+req.uid+":topics", returnData.topic.tid, next);
+											}
+										], next);
+									} else {
+										next();
+									}
+								});
+							}
+						], next);
 					}
 				], function (err) {
 					errorHandler.handle(err, res, returnData);
