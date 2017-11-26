@@ -2,10 +2,10 @@
 /* globals module, require */
 
 var Categories = require.main.require('./src/categories'),
+	Posts = require.main.require('./src/posts'),
 	apiMiddleware = require('./middleware'),
 	errorHandler = require('../../lib/errorHandler'),
 	utils = require('./utils');
-
 
 module.exports = function(/*middleware*/) {
 	var app = require('express').Router();
@@ -32,6 +32,11 @@ module.exports = function(/*middleware*/) {
 		.delete(apiMiddleware.requireUser, apiMiddleware.requireAdmin, apiMiddleware.validateCid, function(req, res) {
 			Categories.purge(req.params.cid, req.user.uid, function(err) {
 				return errorHandler.handle(err, res);
+			});
+		})
+		.get(apiMiddleware.requireUser, apiMiddleware.validateCid, function (req, res) {
+			Posts.getAttachmentsByCid(req.params.cid, req.query, function(err, data) {
+				return errorHandler.handle(err, res, data);
 			});
 		});
 

@@ -38,13 +38,13 @@ module.exports = function(middleware) {
 				async.parallel([
 					function (next) {
 						if (req.body.documents) {
-							Posts.addAttachments(returnData.postData.pid, 'document', req.body.documents, next);
+							Posts.addAttachments(returnData.topicData.cid, returnData.postData.pid, 'document', req.body.documents, next);
 						} else if (req.body.links) {
-							Posts.addAttachments(returnData.postData.pid, 'link', req.body.links, next);
+							Posts.addAttachments(returnData.topicData.cid, returnData.postData.pid, 'link', req.body.links, next);
 						} else if (req.body.audios) {
-							Posts.addAttachments(returnData.postData.pid, 'audio', req.body.audios, next);
+							Posts.addAttachments(returnData.topicData.cid, returnData.postData.pid, 'audio', req.body.audios, next);
 						} else if (req.body.audio) {
-							Posts.addAttachments(returnData.postData.pid, 'audio', [req.body.audio], next);
+							Posts.addAttachments(returnData.topicData.cid, returnData.postData.pid, 'audio', [req.body.audio], next);
 						} else {
 							next();
 						}
@@ -111,13 +111,13 @@ module.exports = function(middleware) {
 				async.parallel([
 					function (next) {
 						if (req.body.documents) {
-							Posts.addAttachments(returnData.pid, 'document', req.body.documents, next);
+							Posts.addAttachments(returnData.cid, returnData.pid, 'document', req.body.documents, next);
 						} else if (req.body.links) {
-							Posts.addAttachments(returnData.pid, 'link', req.body.links, next);
+							Posts.addAttachments(returnData.cid, returnData.pid, 'link', req.body.links, next);
 						} else if (req.body.audios) {
-							Posts.addAttachments(returnData.pid, 'audio', req.body.audios, next);
+							Posts.addAttachments(returnData.cid, returnData.pid, 'audio', req.body.audios, next);
 						} else if (req.body.audio) {
-							Posts.addAttachments(returnData.pid, 'audio', [req.body.audio], next);
+							Posts.addAttachments(returnData.cid, returnData.pid, 'audio', [req.body.audio], next);
 						} else {
 							next();
 						}
@@ -221,13 +221,13 @@ module.exports = function(middleware) {
 						async.parallel([
 							function (next) {
 								if (req.body.documents) {
-									Posts.addAttachments(returnData.post.pid, 'document', req.body.documents, next);
+									Posts.addAttachments(returnData.topic.cid, returnData.post.pid, 'document', req.body.documents, next);
 								} else if (req.body.links) {
-									Posts.addAttachments(returnData.post.pid, 'link', req.body.links, next);
+									Posts.addAttachments(returnData.topic.cid, returnData.post.pid, 'link', req.body.links, next);
 								} else if (req.body.audios) {
-									Posts.addAttachments(returnData.post.pid, 'audio', req.body.audios, next);
+									Posts.addAttachments(returnData.topic.cid, returnData.post.pid, 'audio', req.body.audios, next);
 								} else if (req.body.audio) {
-									Posts.addAttachments(returnData.post.pid, 'audio', [req.body.audio], next);
+									Posts.addAttachments(returnData.topic.cid, returnData.post.pid, 'audio', [req.body.audio], next);
 								} else {
 									next();
 								}

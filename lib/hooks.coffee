@@ -58,7 +58,7 @@ async = require('async')
                 }, data.name, next
         ], (err, cat) ->
             group.cid = cat.cid
-            group.description2 = data.description2 || ''
+            group.brief = data.brief || ''
 
             return callback(err, obj)
 

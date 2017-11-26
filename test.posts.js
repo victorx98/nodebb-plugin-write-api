@@ -11,10 +11,11 @@ $.post('/api/v1/groups', {
 // create topic in the group category.
 // db.getCollection('objects').find({_key: /topic:\d+$/}).sort({_id: -1})
 // db.getCollection('objects').find({_key: 'post:213:documents'})
+// db.getCollection('objects').find({_key: /category:15:(documents|links|audios)/})
 // db.getCollection('objects').find({_key: 'document:1'})
 // db.getCollection('objects').find({_key: /post:\d+:(audios|documents|pictures|links)/}).sort({_id: -1})
 $.post('/api/v1/topics', {
-    cid: 14,
+    cid: 15,
     title: 'group topic title test 01',
     content: 'group topic content test 01',
     documents: [{
@@ -29,7 +30,7 @@ $.post('/api/v1/topics', {
 });
 
 $.post('/api/v1/topics', {
-    cid: 14,
+    cid: 15,
     title: 'group topic title test 02',
     content: 'group topic content test 02',
     links: [{
@@ -44,7 +45,7 @@ $.post('/api/v1/topics', {
 });
 
 $.post('/api/v1/topics', {
-    cid: 14,
+    cid: 15,
     title: 'group topic title test 02',
     content: 'group topic content test 02',
     audio: {
@@ -56,8 +57,8 @@ $.post('/api/v1/topics', {
 });
 
 // reply topic
-$.post('/api/v1/topics/110', {
-    cid: 14,
+$.post('/api/v1/topics/115', {
+    cid: 15,
     content: 'group topic content test 02',
     documents: [{
         filename: 'abc-reply.txt',
@@ -70,8 +71,8 @@ $.post('/api/v1/topics/110', {
     console.log(res);
 });
 
-$.post('/api/v1/topics/110', {
-    cid: 14,
+$.post('/api/v1/topics/115', {
+    cid: 15,
     content: 'group topic content test 02',
     links: [{
         link: 'https://v2mm.tech/topic/3',
@@ -84,8 +85,8 @@ $.post('/api/v1/topics/110', {
     console.log(res);
 });
 
-$.post('/api/v1/topics/110', {
-    cid: 14,
+$.post('/api/v1/topics/115', {
+    cid: 15,
     content: 'group topic content test 02',
     audio: {
         src: 'https://v2mm.tech/v2mm-reply.mp3',
@@ -98,10 +99,10 @@ $.post('/api/v1/topics/110', {
 // edit topic/post
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/110', 
+    url: '/api/v1/topics/113', 
     data: {
-        cid: 14,
-        pid: 216,
+        cid: 15,
+        pid: 222,
         content: 'group topic content test 03 --edited',
         documents: [{
             filename: 'abc-edit.txt',
@@ -117,10 +118,10 @@ $.ajax({
 
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/111', 
+    url: '/api/v1/topics/114', 
     data: {
-        cid: 14,
-        pid: 217,
+        cid: 15,
+        pid: 223,
         content: 'group topic content test 03 --edited',
         links: [{
             link: 'https://v2mm.tech/topic/3',
@@ -136,10 +137,10 @@ $.ajax({
 
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/112', 
+    url: '/api/v1/topics/115', 
     data: {
-        cid: 14,
-        pid: 218,
+        cid: 15,
+        pid: 224,
         content: 'group topic content test 03 --edited',
         audio: {
             src: 'https://v2mm.tech/v2mm-edit.mp3',
@@ -153,10 +154,10 @@ $.ajax({
 // edit post which is not mainPost
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/110', 
+    url: '/api/v1/topics/115', 
     data: {
-        cid: 14,
-        pid: 219,
+        cid: 15,
+        pid: 226,
         content: 'group topic content test 03 --edited',
         documents: [{
             filename: 'abc-edit-2.txt',
