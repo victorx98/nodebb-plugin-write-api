@@ -79,7 +79,7 @@ module.exports = function(middleware) {
 	app.get('/search', apiMiddleware.requireUser, function (req, res) {
 		Groups.search(req.query.q, {filterHidden: true}, function (err, groups) {
 			groups = (groups || []).filter(function (group) {
-				return group.mainCid;
+				return group.cid;
 			});
 			errorHandler.handle(err, res, groups);
 		})
@@ -115,31 +115,33 @@ module.exports = function(middleware) {
 			var groupObj = groupsData[0];
 
 			Groups.destroy(res.locals.groupName, function(err) {
-				if (groupObj.mainCid) {
-					Categories.getChildren([groupObj.mainCid], req.uid, function (err, result) {
-						if (!result || !result[0] || !result[0].length) {
-							return errorHandler.handle(err, res);
-						}
-						async.each(result[0], function (child, next) {
-							Categories.purge(child.cid, req.uid, next);
-						}, function (err) {
-							if (err) {
-								return errorHandler.handle(err, res);
-							}
-
-							// delete this category
-							Categories.purge(groupObj.mainCid, req.uid, function (err) {
-								errorHandler.handle(err, res);
-							})
-						});
-					})
-
+				if (groupObj.cid) {
+					// delete this category
+					Categories.purge(groupObj.cid, req.uid, function (err) {
+						errorHandler.handle(err, res);
+					});
 				} else {
 					errorHandler.handle(err, res);
 				}
 			});
 		});
 	});
+
+	app.route('/:slug/self_intro')
+	  .post(apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, function(req, res) {
+		var key = 'user:'+req.uid+':group_intro';
+		db.setObjectField(key, res.locals.groupName, req.body.intro, function (err) {
+			errorHandler.handle(err, res);
+		});
+	  });
+
+	app.get('/get_intro', function(req, res) {
+		var key = 'user:'+req.query.userId+':group_intro';
+		db.getObjectField(key, req.query.groupName, function (err, intro) {
+			errorHandler.handle(err, res, {intro: intro});
+		});
+	  });
+
 
 	app.post('/:slug/membership', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, function(req, res) {
 		var groupName = res.locals.groupName;
@@ -158,9 +160,24 @@ module.exports = function(middleware) {
 						errorHandler.handle(err, res);
 					});
 				} else {
-					Groups.requestMembership(res.locals.groupName, req.user.uid, function(err) {
-						errorHandler.handle(err, res);
-					});
+					if (groupData.hasPassword && req.body.password) {
+						var key = 'group:password';
+						db.getObjectField(key, groupName, function (err, pwd) {
+							if (err) return errorHandler.handle(err, res);
+							if (pwd === req.body.password) {
+								Groups.join(groupName, req.user.uid, function (err) {
+									errorHandler.handle(err, res);
+								});
+							} else {
+								err = new Error('[[error:invalid-password]]');
+								errorHandler.handle(err, res);
+							}
+						});
+					} else {
+						Groups.requestMembership(res.locals.groupName, req.user.uid, function(err) {
+							errorHandler.handle(err, res);
+						});
+					}
 				}
 			});
 		} else {

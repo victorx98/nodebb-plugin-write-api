@@ -13,6 +13,7 @@
 		{ "hook": "filter:router.page", "method": "associateUser" },
 		{ "hook": "action:settings.set", "method": "reloadSettings" },
 		{ "hook": "filter:group.create", "method": "hooks.filter.groupCreate" },
+		{ "hook": "action:group.update", "method": "hooks.action.groupUpdate" },
 		{ "hook": "filter:category.create", "method": "hooks.filter.categoryCreate" }
 	],
 	"less": [

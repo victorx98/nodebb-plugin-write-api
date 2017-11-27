@@ -2,6 +2,8 @@ Posts = require.main.require('./src/posts')
 Topics = require.main.require('./src/topics')
 Categories = require.main.require('./src/categories')
 privileges = require.main.require('./src/privileges')
+db = require.main.require('./src/database')
+winston = require.main.require('winston')
 async = require('async')
 
 ((Hooks) ->
@@ -49,22 +51,58 @@ async = require('async')
         {group, data} = obj
         return callback(null, obj) if !data.isClub
 
+        cat = null
         async.waterfall [
             (next) ->
                 createCategory {
                     name: data.name,
                     description: data.description,
                     groupSlug: group.slug,
+                    groupName: group.name
                 }, data.name, next
-        ], (err, cat) ->
+            (_cat, next) ->
+                cat = _cat
+                if data.password
+                    key = 'group:password'
+                    db.setObjectField key, group.name, data.password, next
+                else
+                    next null
+        ], (err) ->
             group.cid = cat.cid
             group.brief = data.brief || ''
+            group.hasPassword = data.hasPassword || !!data.password
 
             return callback(err, obj)
 
     Hooks.filter.categoryCreate = (obj, callback) ->
         {category, data} = obj
         category.groupSlug = data.groupSlug
+        category.groupName = data.groupName
         return callback(null, obj)
+
+    Hooks.action.groupUpdate = (obj)->
+        {name, values} = obj
+        payload = {}
+
+        if values.hasOwnProperty('brief')
+            payload.brief = values.brief || ''
+    
+        if values.hasOwnProperty('hasPassword')
+            payload.hasPassword = !!values.hasPassword
+        
+        async.parallel [
+            (next)->
+                db.setObject 'group:' + name, payload, next
+
+            (next)->
+                if values.password
+                    key = 'group:password'
+                    db.setObjectField key, name, values.password, next
+                else
+                    next null
+        ], (err)->
+            if err
+                winston.error(err)
+
 
 )(exports)
