@@ -35,7 +35,7 @@ module.exports = function(/*middleware*/) {
 			});
 		})
 		.get(apiMiddleware.requireUser, apiMiddleware.validateCid, function (req, res) {
-			Posts.getAttachmentsByCid(req.params.cid, req.query, function(err, data) {
+			Posts.getAttachmentsByCid(req.uid, req.params.cid, req.query, function(err, data) {
 				return errorHandler.handle(err, res, data);
 			});
 		});
