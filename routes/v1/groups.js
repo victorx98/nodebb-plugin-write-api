@@ -90,6 +90,8 @@ module.exports = function(middleware) {
 			return false;
 		}
 
+		req.body.ownerUid = req.uid;
+
 		Groups.create(req.body, function(err, groupObj) {
 			errorHandler.handle(err, res, groupObj);
 		});
