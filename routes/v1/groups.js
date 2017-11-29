@@ -238,21 +238,33 @@ module.exports = function(middleware) {
 					});
 				} else {
 					if (groupData.hasPassword && req.body.password) {
-						var key = 'group:password';
-						db.getObjectField(key, groupName, function (err, pwd) {
+						Groups.isPending(req.uid, groupName, function (err, isPending) {
 							if (err) return errorHandler.handle(err, res);
-							if (pwd === req.body.password) {
-								Groups.join(groupName, req.user.uid, function (err) {
+
+							var key = 'group:password';
+							db.getObjectField(key, groupName, function (err, pwd) {
+								if (err) return errorHandler.handle(err, res);
+
+								if (pwd === req.body.password) {
+									if (isPending) {
+										Groups.acceptMembership(groupName, req.uid, function (err) {
+											errorHandler.handle(err, res, {member: true});
+										});
+									} else {
+										Groups.join(groupName, req.user.uid, function (err) {
+											errorHandler.handle(err, res, {member: true});
+										});
+									}
+
+								} else {
+									err = new Error('[[error:invalid-password]]');
 									errorHandler.handle(err, res);
-								});
-							} else {
-								err = new Error('[[error:invalid-password]]');
-								errorHandler.handle(err, res);
-							}
+								}
+							});
 						});
 					} else {
 						Groups.requestMembership(res.locals.groupName, req.user.uid, function(err) {
-							errorHandler.handle(err, res);
+							errorHandler.handle(err, res, {pending: true});
 						});
 					}
 				}
