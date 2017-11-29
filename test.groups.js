@@ -32,4 +32,8 @@ $.get('/api/v1/groups/get_intro', {
     console.log(res);
 });
 
-
+$.post('/api/v1/groups/test-group-07/uploadthumbnail', {
+    url: 'https://mentorxmop.s3.amazonaws.com/mop_upload/ebfda620-a3e0-4dba-b893-edcd1a3c6ea3'
+}).then(function (res) {
+    console.log(res);
+});

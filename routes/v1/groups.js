@@ -4,14 +4,67 @@
 var Groups = require.main.require('./src/groups'),
 	Meta = require.main.require('./src/meta'),
 	Categories = require.main.require('./src/categories'),
-	User = require.main.require('./src/user'),
 	Events = require.main.require('./src/events'),
 	db = require.main.require('./src/database'),
+	image = require.main.require('./src/image'),
+	file = require.main.require('./src/file'),
 	apiMiddleware = require('./middleware'),
 	errorHandler = require('../../lib/errorHandler'),
 	accountHelpers = require.main.require('./src/controllers/accounts/helpers'),
+	uploadsController = require.main.require('./src/controllers/uploads'),
 	async = require('async'),
-	utils = require('./utils');
+	utils = require('./utils'),
+	mime = require.main.require('mime'),
+	path = require.main.require('path'),
+	validator = require.main.require('validator');
+
+Groups.updateThumbnail = function (uid, data, callback) {
+	var tempPath = data.file ? data.file : '';
+	var url;
+	var type = data.file ? mime.lookup(data.file) : 'image/png';
+
+	if (!data.imageData && !data.file && !data.url) {
+		return callback(new Error('[[error:invalid-data]]'));
+	}
+
+	async.waterfall([
+		function (next) {
+			if (data.url) {
+				if (!validator.isURL(data.url)) {
+					return callback(new Error('[[error:invalid-data]]'));
+				} else {
+					Groups.setGroupField(data.groupName, 'thumbnail:url', data.url, function (err) {
+						callback(err, { url: data.url });
+					});
+				}
+			} else {
+				next();
+			}
+		},
+		function (next) {
+			if (tempPath) {
+				return next(null, tempPath);
+			}
+			image.writeImageDataToTempFile(data.imageData, next);
+		},
+		function (_tempPath, next) {
+			tempPath = _tempPath;
+
+			uploadsController.uploadGroupCover(uid, {
+				name: 'groupThumbnail' + path.extname(tempPath),
+				path: tempPath,
+				type: type,
+			}, next);
+		},
+		function (uploadData, next) {
+			url = uploadData.url;
+			Groups.setGroupField(data.groupName, 'thumbnail:url', url, next);
+		}
+	], function (err) {
+		file.delete(tempPath);
+		callback(err, { url: url });
+	});
+};
 
 module.exports = function(middleware) {
 	var app = require('express').Router();
@@ -82,7 +135,7 @@ module.exports = function(middleware) {
 				return group.cid;
 			});
 			errorHandler.handle(err, res, groups);
-		})
+		});
 	});
 
 	app.post('/', apiMiddleware.requireUser, function(req, res) {
@@ -126,6 +179,28 @@ module.exports = function(middleware) {
 					errorHandler.handle(err, res);
 				}
 			});
+		});
+	});
+
+	app.post('/:slug/uploadthumbnail', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
+		async.waterfall([
+			function (next) {
+				Groups.ownership.isOwner(req.uid, res.locals.groupName, next);
+			},
+			function (isOwner, next) {
+				if (!isOwner) {
+					return next(new Error('[[error:no-privileges]]'));
+				}
+
+				Groups.updateThumbnail(req.uid, {
+					file: req.files && req.files.files ? req.files.files[0].path : '',
+					groupName: res.locals.groupName,
+					imageData: req.body.imageData,
+					url: req.body.url
+				}, next);
+			},
+		], function (err, data) {
+			errorHandler.handle(err, res, data);
 		});
 	});
 
