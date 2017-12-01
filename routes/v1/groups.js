@@ -66,6 +66,22 @@ Groups.updateThumbnail = function (uid, data, callback) {
 	});
 };
 
+Groups.updatePassword = function (name, password, callback) {
+	async.parallel([
+	    function(next) {
+	        db.setObjectField('group:'+name, 'hasPassword', !!password, next);
+
+	    }, function(next) {
+	        if (password) {
+	            var key = 'group:password';
+	            db.setObjectField(key, name, password, next);
+	        } else {
+	            next(null);
+	        }
+	    }
+	], callback);
+};
+
 module.exports = function(middleware) {
 	var app = require('express').Router();
 
@@ -153,6 +169,12 @@ module.exports = function(middleware) {
 	app.post('/:slug', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
 		Groups.update(res.locals.groupName, req.body, function (err, data) {
 			errorHandler.handle(err, res, data);
+		});
+	});
+
+	app.post('/:slug/password', apiMiddleware.requireUser, middleware.exposeGroupName, apiMiddleware.validateGroup, apiMiddleware.requireGroupOwner, function(req, res) {
+		Groups.updatePassword(res.locals.groupName, req.body.password, function (err) {
+			errorHandler.handle(err, res);
 		});
 	});
 

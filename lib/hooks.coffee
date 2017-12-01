@@ -89,6 +89,8 @@ async = require('async')
     
         if values.hasOwnProperty('hasPassword')
             payload.hasPassword = !!values.hasPassword
+        else if values.hasOwnProperty('password')
+            payload.hasPassword = true
         
         async.parallel [
             (next)->
