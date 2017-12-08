@@ -284,6 +284,25 @@ module.exports = function(middleware) {
 								}
 							});
 						});
+					} else if (req.body.token && groupName == req.body.groupName) {
+						Groups.isPending(req.uid, groupName, function (err, isPending) {
+							if (err) return errorHandler.handle(err, res);
+
+
+							User.verifyGroupInvitation(req.body, function (err) {
+								if (err) return winston.error(err);
+
+								if (isPending) {
+									Groups.acceptMembership(groupName, req.user.uid, function (err) {
+										errorHandler.handle(err, res, {member: true});
+									});
+								} else {
+									Groups.join(groupName, req.user.uid, function (err) {
+										if (err) return winston.error(err);
+									});
+								}
+							});
+						});
 					} else {
 						Groups.requestMembership(res.locals.groupName, req.user.uid, function(err) {
 							errorHandler.handle(err, res, {pending: true});
