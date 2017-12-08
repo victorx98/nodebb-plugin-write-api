@@ -163,7 +163,11 @@ module.exports = function(middleware) {
 		})
 		.delete(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
 			Topics.delete(req.params.tid, req.params._uid, function(err) {
-				errorHandler.handle(err, res);
+				Topics.getTopicData(req.params.tid, function (err, topicData) {
+					if (err) return errorHandler.handle(err, res);
+					Posts.deleteAttachmentsOnDeleteTopic(topicData);
+					return errorHandler.handle(err, res);
+				});
 			});
 		})
 		.put(apiMiddleware.requireUser, function(req, res) {

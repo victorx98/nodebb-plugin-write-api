@@ -170,3 +170,19 @@ $.ajax({
 }).then(function (res) {
     console.log(res);
 });
+
+// delete topic
+// db.getCollection('objects').find({_key: /category:\d+:(link|document)/})
+socket.emit('topics.delete', {
+    tids: [113],
+    cid: 15
+}, function(err, data){
+    console.log(err, data);
+});
+
+socket.emit('topics.restore', {
+    tids: [113],
+    cid: 15
+}, function(err, data){
+    console.log(err, data);
+});
