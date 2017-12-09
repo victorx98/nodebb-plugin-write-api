@@ -290,7 +290,7 @@ module.exports = function(middleware) {
 
 
 							User.verifyGroupInvitation(req.body, function (err) {
-								if (err) return winston.error(err);
+								if (err) return errorHandler.handle(err, res);
 
 								if (isPending) {
 									Groups.acceptMembership(groupName, req.user.uid, function (err) {
@@ -298,7 +298,7 @@ module.exports = function(middleware) {
 									});
 								} else {
 									Groups.join(groupName, req.user.uid, function (err) {
-										if (err) return winston.error(err);
+										if (err) return errorHandler.handle(err, res);
 									});
 								}
 							});
