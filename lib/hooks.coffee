@@ -15,9 +15,10 @@ async = require('async')
             (next) ->
                 # default public group user can find and read topics;
                 removePrivileges = [
-                    # 'topics:read',
+                    'read',
+                    'topics:read',
                     'topics:create',
-                    'topics:reply', 'posts:edit',
+                    'topics:reply', 'topics:tag', 'posts:edit',
                     'posts:delete', 'topics:delete',
                     'upload:post:image'
                 ]
