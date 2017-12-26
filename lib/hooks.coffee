@@ -82,27 +82,41 @@ async = require('async')
         return callback(null, obj)
 
     Hooks.action.groupUpdate = (obj)->
-        {name, values} = obj
+        {oldName, values} = obj
+        name = values.name || oldName
         payload = {}
 
         if values.hasOwnProperty('brief')
             payload.brief = values.brief || ''
-    
+
         if values.hasOwnProperty('hasPassword')
             payload.hasPassword = !!values.hasPassword
         else if values.hasOwnProperty('password')
             payload.hasPassword = true
-        
+
+        updateCategoryInfo = (cb) ->
+          async.waterfall [
+            (next)->
+              db.getObjectFields 'group:'+name, ['cid', 'slug'], next
+            (data, next)->
+              if data.cid
+                db.setObject "category:#{data.cid}",
+                {groupName: name, groupSlug: data.slug}, next
+              else
+                next()
+          ], cb
+
         async.parallel [
             (next)->
                 db.setObject 'group:' + name, payload, next
-
             (next)->
                 if values.password
                     key = 'group:password'
                     db.setObjectField key, name, values.password, next
                 else
                     next null
+
+            updateCategoryInfo
         ], (err)->
             if err
                 winston.error(err)

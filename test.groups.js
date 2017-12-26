@@ -13,6 +13,14 @@ $.post('/api/v1/groups/test-group-07', {
     console.log(res);
 });
 
+
+$.post('/api/v1/groups/test-group-07', {
+    brief: 'brief-updated',
+		name: 'test-group-07-updated'
+}).then(function (res) {
+    console.log(res);
+});
+
 $.post('/api/v1/groups/test-group-07/password', {
     password: '123456789999999999'
 }).then(function (res) {
