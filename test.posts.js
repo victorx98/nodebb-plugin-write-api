@@ -1,6 +1,6 @@
 // create group
 // db.getCollection('objects').find({_key: /group:test/})
-// 
+//
 $.post('/api/v1/groups', {
     name: 'test-group-02',
     isClub: true
@@ -56,6 +56,22 @@ $.post('/api/v1/topics', {
     console.log(res);
 });
 
+$.post('/api/v1/topics', {
+    cid: 15,
+    title: 'hiring topic title test 02',
+    content: 'hiring topic content test 02',
+    hiring: {
+				startDate: "2018-01-01 08:00:00",
+				endDate: "2018-01-11 08:00:00",
+				h1bSponsor: true,
+				jobType: 'fulltime',
+				company: 'Google inc',
+        location: "Newyork, US"
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
 // reply topic
 $.post('/api/v1/topics/115', {
     cid: 15,
@@ -99,7 +115,7 @@ $.post('/api/v1/topics/115', {
 // edit topic/post
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/113', 
+    url: '/api/v1/topics/113',
     data: {
         cid: 15,
         pid: 222,
@@ -118,7 +134,7 @@ $.ajax({
 
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/114', 
+    url: '/api/v1/topics/114',
     data: {
         cid: 15,
         pid: 223,
@@ -137,7 +153,7 @@ $.ajax({
 
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/115', 
+    url: '/api/v1/topics/115',
     data: {
         cid: 15,
         pid: 224,
@@ -154,7 +170,7 @@ $.ajax({
 // edit post which is not mainPost
 $.ajax({
     method: 'put',
-    url: '/api/v1/topics/115', 
+    url: '/api/v1/topics/115',
     data: {
         cid: 15,
         pid: 226,

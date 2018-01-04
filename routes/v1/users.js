@@ -7,7 +7,8 @@ var Users = require.main.require('./src/user'),
 	errorHandler = require('../../lib/errorHandler'),
 	auth = require('../../lib/auth'),
 	utils = require('./utils'),
-	async = require.main.require('async');
+	async = require.main.require('async'),
+	sysUtils = require.main.require('./src/utils');
 
 
 module.exports = function(/*middleware*/) {
@@ -31,10 +32,35 @@ module.exports = function(/*middleware*/) {
 				return errorHandler.respond(401, res);
 			}
 
-			// This is the update uid
-			req.body.uid = req.params.uid;
+			var userData = req.body;
+			var userNameChanged;
 
-			Users.updateProfile(req.params.uid, req.body, function(err) {
+			// This is the update uid
+			userData.uid = req.params.uid;
+
+			async.waterfall([
+				function(next) {
+					if (userData.rename) {
+						Users.uniqueUsername({
+							userslug: sysUtils.slugify(userData.rename),
+							username: userData.rename
+						}, next);
+					} else {
+						next(null, '');
+					}
+				},
+				function(renamedUsername, next) {
+					userNameChanged = !!renamedUsername;
+					if (userNameChanged) {
+						userData.username = renamedUsername;
+						userData.userslug = sysUtils.slugify(renamedUsername);
+					}
+					Users.updateProfile(req.uid, userData, next);
+				}
+			], function(err) {
+				if (!err && userNameChanged) {
+					Users.notifications.sendNameChangeNotification(userData.uid, userData.username);
+				}
 				return errorHandler.handle(err, res);
 			});
 		})
