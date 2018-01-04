@@ -57,11 +57,11 @@ module.exports = function(/*middleware*/) {
 					}
 					Users.updateProfile(req.uid, userData, next);
 				}
-			], function(err) {
+			], function(err, result) {
 				if (!err && userNameChanged) {
 					Users.notifications.sendNameChangeNotification(userData.uid, userData.username);
 				}
-				return errorHandler.handle(err, res);
+				return errorHandler.handle(err, res, result);
 			});
 		})
 		.delete(apiMiddleware.requireUser, apiMiddleware.exposeAdmin, function(req, res) {
