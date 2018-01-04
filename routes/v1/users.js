@@ -56,6 +56,12 @@ module.exports = function(/*middleware*/) {
 						userData.userslug = sysUtils.slugify(renamedUsername);
 					}
 					Users.updateProfile(req.uid, userData, next);
+				},
+				function(result, next) {
+					// wait until the update user action plugin api called!!!
+					setTimeout(function(){
+						Users.getUserFields(userData.uid, ['email', 'username', 'userslug', 'picture', 'icon:text', 'icon:bgColor'], next);
+					}, 100);
 				}
 			], function(err, result) {
 				if (!err && userNameChanged) {
