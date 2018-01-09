@@ -82,7 +82,8 @@ async = require('async')
         return callback(null, obj)
 
     Hooks.action.groupUpdate = (obj)->
-        {oldName, values} = obj
+        oldName = obj.name
+        values = obj.values
         name = values.name || oldName
         payload = {}
 

@@ -56,15 +56,46 @@ $.post('/api/v1/topics', {
     console.log(res);
 });
 
+// jobType & h1bSponsor
+// db.getCollection('objects').find({_key: /^hiring:(fulltime|parttime|intern|h1bSponsor:true|h1bSponsor:false)/})
 $.post('/api/v1/topics', {
     cid: 15,
-    title: 'hiring topic title test 02',
+    title: 'hiring topic fulltime 1111',
+    content: 'hiring topic content test 02',
+    hiring: {
+				startDate: "2018-01-01 08:00:00",
+				endDate: "2018-01-11 08:00:00",
+				jobType: 'fulltime',
+				company: 'Google inc',
+        location: "Newyork, US"
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics', {
+    cid: 15,
+    title: 'hiring topic h1bSponsor 1111',
     content: 'hiring topic content test 02',
     hiring: {
 				startDate: "2018-01-01 08:00:00",
 				endDate: "2018-01-11 08:00:00",
 				h1bSponsor: true,
-				jobType: 'fulltime',
+				company: 'Google inc',
+        location: "Newyork, US"
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.post('/api/v1/topics', {
+    cid: 15,
+    title: 'hiring topic h1bSponsor 222',
+    content: 'hiring topic content test 02',
+    hiring: {
+				startDate: "2018-01-01 08:00:00",
+				endDate: "2018-01-11 08:00:00",
+				h1bSponsor: false,
 				company: 'Google inc',
         location: "Newyork, US"
     }
