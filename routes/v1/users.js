@@ -41,10 +41,9 @@ module.exports = function(/*middleware*/) {
 			async.waterfall([
 				function(next) {
 					if (userData.rename) {
-						Users.uniqueUsername({
-							userslug: sysUtils.slugify(userData.rename),
-							username: userData.rename
-						}, next);
+						userData.username = userData.rename;
+						userData.userslug = sysUtils.slugify(userData.rename);
+						Users.uniqueUsername(userData, next);
 					} else {
 						next(null, '');
 					}
