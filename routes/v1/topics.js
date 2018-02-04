@@ -278,6 +278,44 @@ module.exports = function(middleware) {
 			});
 		});
 
+	app.route('/:tid/other')
+		.post(apiMiddleware.requireUser, apiMiddleware.requireAdmin, apiMiddleware.validateTid, function(req, res) {
+			var tid = req.params.tid;
+
+			var viewcount = req.body.viewcount;
+
+			var upvotes = req.body.upvotes;
+			var mainPid = req.body.mainPid;
+
+			var chosenTids = req.body.chosenTids;
+
+			async.parallel([
+				function(next) {
+					if (viewcount) {
+						db.setObjectField('topic:'+tid, 'viewcount', viewcount, next);
+					} else {
+						next();
+					}
+				},
+				function(next) {
+					if (upvotes && mainPid) {
+						db.setObjectField('post:'+mainPid, 'upvotes', upvotes, next);
+					} else {
+						next();
+					}
+				},
+				function(next) {
+					if (chosenTids) {
+						db.setObjectField('topic:'+tid, 'chosenTids', chosenTids, next);
+					} else {
+						next();
+					}
+				}
+			], function (err) {
+				errorHandler.handle(err, res);
+			});
+		});
+
 	app.route('/:tid/follow')
 		.post(apiMiddleware.requireUser, apiMiddleware.validateTid, function(req, res) {
 			Topics.follow(req.params.tid, req.user.uid, function(err) {

@@ -233,3 +233,36 @@ socket.emit('topics.restore', {
 }, function(err, data){
     console.log(err, data);
 });
+
+// edit topic viewcount / upvotes
+// edit post which is not mainPost
+$.ajax({
+    method: 'post',
+    url: '/api/v1/topics/4/other',
+    data: {
+        viewcount: 123
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.ajax({
+    method: 'post',
+    url: '/api/v1/topics/4/other',
+    data: {
+        mainPid: 4,
+        upvotes: 123
+    }
+}).then(function (res) {
+    console.log(res);
+});
+
+$.ajax({
+    method: 'post',
+    url: '/api/v1/topics/4/other',
+    data: {
+        chosenTids: [6, 7]
+    }
+}).then(function (res) {
+    console.log(res);
+});
