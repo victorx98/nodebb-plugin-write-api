@@ -282,24 +282,24 @@ module.exports = function(middleware) {
 		.post(apiMiddleware.requireUser, apiMiddleware.requireAdmin, apiMiddleware.validateTid, function(req, res) {
 			var tid = req.params.tid;
 
-			var viewcount = req.body.viewcount;
+			var evcount = parseInt(req.body.evcount, 10);
 
-			var upvotes = req.body.upvotes;
+			var eucount = parseInt(req.body.eucount, 10);
 			var mainPid = req.body.mainPid;
 
 			var chosenTids = req.body.chosenTids;
 
 			async.parallel([
 				function(next) {
-					if (viewcount) {
-						db.setObjectField('topic:'+tid, 'viewcount', viewcount, next);
+					if (evcount) {
+						db.setObjectField('topic:'+tid, 'evcount', evcount, next);
 					} else {
 						next();
 					}
 				},
 				function(next) {
-					if (upvotes && mainPid) {
-						db.setObjectField('post:'+mainPid, 'upvotes', upvotes, next);
+					if (eucount && mainPid) {
+						db.setObjectField('post:'+mainPid, 'eucount', eucount, next);
 					} else {
 						next();
 					}
