@@ -279,7 +279,7 @@ module.exports = function(middleware) {
 		});
 
 	app.route('/:tid/other')
-		.post(apiMiddleware.requireUser, apiMiddleware.requireAdmin, apiMiddleware.validateTid, function(req, res) {
+		.post(apiMiddleware.requireAdminOrGlobalMod, apiMiddleware.validateTid, function(req, res) {
 			var tid = req.params.tid;
 
 			var evcount = parseInt(req.body.evcount, 10);

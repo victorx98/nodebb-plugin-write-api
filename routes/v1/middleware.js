@@ -284,6 +284,20 @@ Middleware.requireAdmin = function(req, res, next) {
 	});
 };
 
+Middleware.requireAdminOrGlobalMod = function(req, res, next) {
+	if (!req.user) {
+		return errorHandler.respond(401, res);
+	}
+
+	user.isAdminOrGlobalMod(req.user.uid, function(err, isAdminOrGlobalMod) {
+		if (err || !isAdminOrGlobalMod) {
+			return errorHandler.respond(403, res);
+		}
+
+		next();
+	});
+};
+
 Middleware.exposeAdmin = function(req, res, next) {
 	// Unlike `requireAdmin`, this middleware just checks the uid, and sets `isAdmin` in `res.locals`
 	res.locals.isAdmin = false;
